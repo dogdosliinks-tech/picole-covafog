@@ -1,0 +1,306 @@
+name: Gerar APK Android
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.7"
+
+      - name: Montar projeto Android (WebView com o app)
+        env:
+          KEYSTORE_B64: ${{ secrets.KEYSTORE_B64 }}
+        run: |
+          set -e
+          P=android
+          PKG=br/covafog/picole
+          mkdir -p $P/app/src/main/java/$PKG $P/app/src/main/assets $P/app/src/main/res/mipmap-xxxhdpi $P/app/src/main/res/values $P/app/src/main/res/xml
+          cp index.html manifest.json sw.js *.png $P/app/src/main/assets/
+          cp icon-512.png $P/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png
+          # chave de assinatura: segredo do repositório > arquivo no repositório > chave provisória
+          if [ -n "$KEYSTORE_B64" ]; then echo "$KEYSTORE_B64" | base64 -d > $P/app/picole.keystore
+          elif [ -f picole.keystore ]; then cp picole.keystore $P/app/picole.keystore
+          else
+            echo "::warning::Sem chave fixa: APK assinado com chave provisoria (atualizacoes nao instalam por cima)."
+            keytool -genkeypair -keystore $P/app/picole.keystore -storetype PKCS12 -alias picole -keyalg RSA -keysize 2048 -validity 10000 -storepass picolecovafog -keypass picolecovafog -dname "CN=Picole COVAFOG"
+          fi
+
+          cat > $P/settings.gradle <<'EOF'
+          pluginManagement { repositories { google(); mavenCentral(); gradlePluginPortal() } }
+          dependencyResolutionManagement { repositories { google(); mavenCentral() } }
+          rootProject.name = "PicoleCovafog"
+          include ':app'
+          EOF
+
+          cat > $P/build.gradle <<'EOF'
+          plugins { id 'com.android.application' version '8.5.2' apply false }
+          EOF
+
+          cat > $P/gradle.properties <<'EOF'
+          android.useAndroidX=true
+          org.gradle.jvmargs=-Xmx2g
+          EOF
+
+          cat > $P/app/build.gradle <<EOF
+          plugins { id 'com.android.application' }
+          android {
+            namespace 'br.covafog.picole'
+            compileSdk 34
+            defaultConfig {
+              applicationId 'br.covafog.picole'
+              minSdk 24
+              targetSdk 34
+              versionCode ${GITHUB_RUN_NUMBER}
+              versionName '1.${GITHUB_RUN_NUMBER}'
+            }
+            signingConfigs {
+              release {
+                storeFile file('picole.keystore')
+                storePassword 'picolecovafog'
+                keyAlias 'picole'
+                keyPassword 'picolecovafog'
+              }
+            }
+            buildTypes {
+              release { minifyEnabled false; signingConfig signingConfigs.release }
+            }
+            lint { checkReleaseBuilds false; abortOnError false }
+            compileOptions { sourceCompatibility JavaVersion.VERSION_17; targetCompatibility JavaVersion.VERSION_17 }
+          }
+          dependencies {
+            implementation 'androidx.webkit:webkit:1.11.0'
+            implementation 'androidx.core:core:1.13.1'
+          }
+          EOF
+
+          cat > $P/app/src/main/res/values/strings.xml <<'EOF'
+          <resources><string name="app_name">Picolé COVAFOG</string></resources>
+          EOF
+
+          cat > $P/app/src/main/res/xml/file_paths.xml <<'EOF'
+          <?xml version="1.0" encoding="utf-8"?>
+          <paths><cache-path name="share" path="share/"/></paths>
+          EOF
+
+          cat > $P/app/src/main/AndroidManifest.xml <<'EOF'
+          <?xml version="1.0" encoding="utf-8"?>
+          <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+            <uses-permission android:name="android.permission.INTERNET"/>
+            <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="28"/>
+            <application android:label="@string/app_name" android:icon="@mipmap/ic_launcher"
+                android:allowBackup="true" android:theme="@android:style/Theme.Material.Light.NoActionBar">
+              <provider android:name="androidx.core.content.FileProvider"
+                  android:authorities="br.covafog.picole.files"
+                  android:exported="false" android:grantUriPermissions="true">
+                <meta-data android:name="android.support.FILE_PROVIDER_PATHS" android:resource="@xml/file_paths"/>
+              </provider>
+              <activity android:name=".MainActivity" android:exported="true" android:launchMode="singleTask"
+                  android:configChanges="orientation|screenSize|keyboardHidden"
+                  android:windowSoftInputMode="adjustResize">
+                <intent-filter>
+                  <action android:name="android.intent.action.MAIN"/>
+                  <category android:name="android.intent.category.LAUNCHER"/>
+                </intent-filter>
+                <!-- arquivo de vendas tocado no WhatsApp: "Abrir com Picolé COVAFOG" -->
+                <intent-filter android:label="Importar no Picolé COVAFOG">
+                  <action android:name="android.intent.action.VIEW"/>
+                  <category android:name="android.intent.category.DEFAULT"/>
+                  <category android:name="android.intent.category.BROWSABLE"/>
+                  <data android:scheme="content"/>
+                  <data android:scheme="file"/>
+                  <data android:mimeType="application/json"/>
+                  <data android:mimeType="application/octet-stream"/>
+                  <data android:mimeType="text/plain"/>
+                </intent-filter>
+                <intent-filter android:label="Importar no Picolé COVAFOG">
+                  <action android:name="android.intent.action.SEND"/>
+                  <category android:name="android.intent.category.DEFAULT"/>
+                  <data android:mimeType="application/json"/>
+                  <data android:mimeType="application/octet-stream"/>
+                  <data android:mimeType="text/plain"/>
+                </intent-filter>
+              </activity>
+            </application>
+          </manifest>
+          EOF
+
+          cat > $P/app/src/main/java/$PKG/MainActivity.java <<'EOF'
+          package br.covafog.picole;
+
+          import android.app.Activity;
+          import android.content.ContentValues;
+          import android.content.Intent;
+          import android.graphics.Color;
+          import android.net.Uri;
+          import android.os.Build;
+          import android.os.Bundle;
+          import android.os.Environment;
+          import android.provider.MediaStore;
+          import android.webkit.JavascriptInterface;
+          import android.webkit.ValueCallback;
+          import android.webkit.WebChromeClient;
+          import android.webkit.WebResourceRequest;
+          import android.webkit.WebResourceResponse;
+          import android.webkit.WebSettings;
+          import android.webkit.WebView;
+          import android.webkit.WebViewClient;
+          import androidx.core.content.FileProvider;
+          import androidx.webkit.WebViewAssetLoader;
+          import org.json.JSONObject;
+          import java.io.ByteArrayOutputStream;
+          import java.io.File;
+          import java.io.FileOutputStream;
+          import java.io.InputStream;
+          import java.io.OutputStream;
+          import java.nio.charset.StandardCharsets;
+
+          public class MainActivity extends Activity {
+            private WebView web;
+            private ValueCallback<Uri[]> fileCallback;
+            private static final int PICK_FILE = 42;
+            private boolean pageReady = false;
+            private String pendingImport = null;
+
+            @Override protected void onCreate(Bundle b) {
+              super.onCreate(b);
+              getWindow().setStatusBarColor(Color.parseColor("#10233F"));
+              web = new WebView(this);
+              setContentView(web);
+              final WebViewAssetLoader loader = new WebViewAssetLoader.Builder()
+                  .addPathHandler("/assets/", new WebViewAssetLoader.AssetsPathHandler(this)).build();
+              WebSettings s = web.getSettings();
+              s.setJavaScriptEnabled(true);
+              s.setDomStorageEnabled(true);
+              s.setDatabaseEnabled(true);
+              web.addJavascriptInterface(new Bridge(), "AndroidApp");
+              web.setWebViewClient(new WebViewClient() {
+                @Override public WebResourceResponse shouldInterceptRequest(WebView v, WebResourceRequest r) {
+                  return loader.shouldInterceptRequest(r.getUrl());
+                }
+                @Override public void onPageFinished(WebView v, String url) { pageReady = true; deliverImport(); }
+              });
+              web.setWebChromeClient(new WebChromeClient() {
+                @Override public boolean onShowFileChooser(WebView v, ValueCallback<Uri[]> cb, FileChooserParams p) {
+                  if (fileCallback != null) fileCallback.onReceiveValue(null);
+                  fileCallback = cb;
+                  Intent i = new Intent(Intent.ACTION_GET_CONTENT);
+                  i.addCategory(Intent.CATEGORY_OPENABLE);
+                  i.setType("*/*");
+                  startActivityForResult(Intent.createChooser(i, "Escolher arquivo"), PICK_FILE);
+                  return true;
+                }
+              });
+              web.loadUrl("https://appassets.androidplatform.net/assets/index.html");
+              handleIntent(getIntent());
+            }
+
+            @Override protected void onNewIntent(Intent i) { super.onNewIntent(i); setIntent(i); handleIntent(i); }
+
+            // arquivo de vendas aberto pelo WhatsApp (Abrir com / Compartilhar)
+            private void handleIntent(Intent i) {
+              if (i == null) return;
+              Uri uri = null;
+              if (Intent.ACTION_VIEW.equals(i.getAction())) {
+                uri = i.getData();
+              } else if (Intent.ACTION_SEND.equals(i.getAction())) {
+                uri = i.getParcelableExtra(Intent.EXTRA_STREAM);
+                if (uri == null && i.getStringExtra(Intent.EXTRA_TEXT) != null) {
+                  pendingImport = i.getStringExtra(Intent.EXTRA_TEXT);
+                  deliverImport();
+                  return;
+                }
+              }
+              if (uri == null) return;
+              try (InputStream in = getContentResolver().openInputStream(uri)) {
+                ByteArrayOutputStream out = new ByteArrayOutputStream();
+                byte[] buf = new byte[8192];
+                int n; long total = 0;
+                while ((n = in.read(buf)) > 0) { out.write(buf, 0, n); total += n; if (total > 10000000) break; }
+                pendingImport = new String(out.toByteArray(), StandardCharsets.UTF_8);
+                deliverImport();
+              } catch (Exception e) { }
+            }
+
+            private void deliverImport() {
+              if (!pageReady || pendingImport == null) return;
+              String js = "window.receberAtualizacao && window.receberAtualizacao(" + JSONObject.quote(pendingImport) + ")";
+              pendingImport = null;
+              web.evaluateJavascript(js, null);
+            }
+
+            @Override protected void onActivityResult(int req, int res, Intent data) {
+              if (req == PICK_FILE && fileCallback != null) {
+                Uri[] r = (res == RESULT_OK && data != null && data.getData() != null) ? new Uri[]{ data.getData() } : null;
+                fileCallback.onReceiveValue(r);
+                fileCallback = null;
+              }
+              super.onActivityResult(req, res, data);
+            }
+
+            @Override public void onBackPressed() { if (web.canGoBack()) web.goBack(); else super.onBackPressed(); }
+
+            class Bridge {
+              @JavascriptInterface public void shareFile(String name, String mime, String text) throws Exception {
+                File dir = new File(getCacheDir(), "share");
+                dir.mkdirs();
+                File f = new File(dir, name);
+                try (FileOutputStream os = new FileOutputStream(f)) { os.write(text.getBytes(StandardCharsets.UTF_8)); }
+                Uri uri = FileProvider.getUriForFile(MainActivity.this, "br.covafog.picole.files", f);
+                final Intent send = new Intent(Intent.ACTION_SEND);
+                send.setType(mime);
+                send.putExtra(Intent.EXTRA_STREAM, uri);
+                send.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                runOnUiThread(() -> startActivity(Intent.createChooser(send, "Enviar vendas")));
+              }
+
+              @JavascriptInterface public void saveFile(String name, String mime, String text) throws Exception {
+                byte[] bytes = text.getBytes(StandardCharsets.UTF_8);
+                if (Build.VERSION.SDK_INT >= 29) {
+                  ContentValues cv = new ContentValues();
+                  cv.put(MediaStore.Downloads.DISPLAY_NAME, name);
+                  cv.put(MediaStore.Downloads.MIME_TYPE, mime);
+                  Uri uri = getContentResolver().insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, cv);
+                  try (OutputStream os = getContentResolver().openOutputStream(uri)) { os.write(bytes); }
+                } else {
+                  File dir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
+                  dir.mkdirs();
+                  try (FileOutputStream os = new FileOutputStream(new File(dir, name))) { os.write(bytes); }
+                }
+              }
+            }
+          }
+          EOF
+
+      - name: Compilar APK
+        working-directory: android
+        run: gradle assembleRelease --no-daemon
+
+      - name: Renomear APK
+        run: cp android/app/build/outputs/apk/release/app-release.apk PicoleCOVAFOG.apk
+
+      - name: Publicar na página de downloads (Releases)
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v1.${{ github.run_number }}
+          name: Picolé COVAFOG 1.${{ github.run_number }}
+          body: |
+            Baixe o arquivo **PicoleCOVAFOG.apk** abaixo no celular Android e toque nele para instalar
+            (se pedir, permita "instalar apps desconhecidos" para o navegador).
+          files: PicoleCOVAFOG.apk
+          make_latest: true
