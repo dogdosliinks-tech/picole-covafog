@@ -250,7 +250,7 @@ details summary{cursor:pointer;font-weight:600;color:var(--ink2)}
         <div class="cashrow"><span>Vendas em dinheiro</span><span id="cxDin">R$ 0,00</span></div>
         <div class="cashrow"><span>Vendas no Pix</span><span id="cxPix">R$ 0,00</span></div>
         <div class="cashrow"><span>Vendas no cartão</span><span id="cxCar">R$ 0,00</span></div>
-        <div class="cashrow"><span>Despesas pagas com dinheiro da caixa</span><span id="cxDesp">R$ 0,00</span></div>
+        <div class="cashrow"><span>Pago com dinheiro da caixa (despesas e compras)</span><span id="cxDesp">R$ 0,00</span></div>
         <div class="cashrow tot"><span>Dinheiro que deve ter na caixa</span><span id="cxEsperado">R$ 0,00</span></div>
       </div>
     </div>
@@ -316,6 +316,32 @@ details summary{cursor:pointer;font-weight:600;color:var(--ink2)}
 
 <!-- ============ ESTOQUE ============ -->
 <section class="view" id="v-estoque" hidden>
+  <div class="panel" id="compraPanel">
+    <div class="panel-h"><h2><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px;color:var(--accent)"><path d="M1 3h15v13H1z"/><path d="M16 8h4l3 3v5h-7z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>Nova compra (lote)</h2><span class="foot">chegou picolé do fornecedor</span></div>
+    <div class="grid2" style="align-items:start">
+      <div>
+        <div class="fields">
+          <div class="field"><label for="lPreco">Preço de cada picolé (R$)</label><input id="lPreco" type="number" inputmode="decimal" step="0.01" min="0" placeholder="ex.: 1,50"></div>
+          <div class="field"><label for="lFrete">Frete desta compra (R$)</label><input id="lFrete" type="number" inputmode="decimal" step="0.01" min="0" placeholder="ex.: 5,00"></div>
+        </div>
+        <div class="tablewrap" style="margin-top:12px"><table>
+          <thead><tr><th>Sabor</th><th>Quantidade</th><th>Preço (se diferente)</th></tr></thead>
+          <tbody id="lItens"></tbody>
+        </table></div>
+      </div>
+      <div class="cashbox" style="background:var(--surface2);border:1px solid var(--line);border-radius:12px;padding:14px">
+        <div class="cashrow"><span>Picolés comprados</span><span id="lQtd">0</span></div>
+        <div class="cashrow"><span>Valor dos picolés</span><span id="lValor">R$ 0,00</span></div>
+        <div class="cashrow"><span>Frete</span><span id="lFreteV">R$ 0,00</span></div>
+        <div class="cashrow"><span class="muted">Frete por picolé</span><span class="muted" id="lFretePor">R$ 0,00</span></div>
+        <div class="cashrow tot"><span>Total da compra</span><span id="lTotal">R$ 0,00</span></div>
+        <div class="cashrow tot" style="color:var(--accent)"><span>Custo de cada picolé neste lote</span><span id="lCusto">R$ 0,00</span></div>
+        <label class="row" style="gap:8px;font-size:14px;margin-top:6px"><input type="checkbox" id="lCaixa" style="width:auto"> Paguei com o dinheiro da caixa de hoje</label>
+        <button class="btn primary" type="button" id="lSalvar" style="margin-top:6px">Registrar compra</button>
+        <p class="msg" id="lMsg"></p>
+      </div>
+    </div>
+  </div>
   <div class="grid2">
     <div class="panel">
       <div class="panel-h"><h2>Estoque por sabor</h2><span class="foot" id="stTotal"></span></div>
@@ -325,17 +351,23 @@ details summary{cursor:pointer;font-weight:600;color:var(--ink2)}
       </table></div>
     </div>
     <div class="panel">
-      <div class="panel-h"><h2>Movimentar estoque</h2></div>
+      <div class="panel-h"><h2>Perda e contagem</h2></div>
       <form id="movForm" class="fields" autocomplete="off">
         <div class="field" style="grid-column:1/-1"><label for="mSabor">Sabor</label><select id="mSabor"></select></div>
-        <div class="field"><label for="mTipo">Tipo</label><select id="mTipo"><option value="entrada">Entrada</option><option value="perda">Perda</option><option value="ajuste">Contagem</option></select></div>
+        <div class="field"><label for="mTipo">Tipo</label><select id="mTipo"><option value="perda">Perda</option><option value="ajuste">Contagem</option><option value="entrada">Entrada sem custo (brinde, troca)</option></select></div>
         <div class="field"><label for="mQtd" id="mQtdL">Quantidade</label><input id="mQtd" type="number" inputmode="numeric" step="1" min="0" required></div>
-        <div class="field" id="mPagoF" style="grid-column:1/-1"><label for="mPago">Valor pago na compra (R$, opcional)</label><input id="mPago" type="number" inputmode="decimal" step="0.01" min="0" placeholder="se preencher, atualiza o custo do sabor"></div>
-        <p class="foot" style="grid-column:1/-1">Entrada: chegou picolé comprado. Perda: derreteu, caiu, estragou. Contagem: contou o freezer e quer acertar o número.</p>
+        <p class="foot" style="grid-column:1/-1">Perda: derreteu, caiu, estragou. Contagem: contou o freezer e quer acertar o número. Picolé comprado entra por "Nova compra", lá em cima.</p>
         <div class="field" style="grid-column:1/-1"><label for="mObs">Observação</label><input id="mObs" type="text" maxlength="60" placeholder="opcional"></div>
         <div class="row" style="grid-column:1/-1"><button class="btn blue" type="submit">Registrar</button><p class="msg" id="mMsg"></p></div>
       </form>
     </div>
+  </div>
+  <div class="panel">
+    <div class="panel-h"><h2>Compras (lotes)</h2><span class="foot" id="lotesInfo"></span></div>
+    <div class="tablewrap"><table>
+      <thead><tr><th>Data</th><th class="l">Sabores</th><th>Picolés</th><th>Frete</th><th>Total</th><th>Custo cada</th><th></th></tr></thead>
+      <tbody id="lotesTable"></tbody>
+    </table></div>
   </div>
   <div class="panel">
     <div class="panel-h"><h2>Últimas movimentações</h2></div>
@@ -350,21 +382,14 @@ details summary{cursor:pointer;font-weight:600;color:var(--ink2)}
 <section class="view" id="v-custos" hidden>
   <div class="grid2e">
     <div class="panel">
-      <div class="panel-h"><h2>Custo de compra</h2><span class="foot">quanto vocês pagam em cada picolé</span></div>
-      <div class="pill warn" id="custoAviso" style="margin-bottom:12px;white-space:normal" hidden>Falta informar o custo de alguns sabores. Sem ele o lucro aparece maior do que é.</div>
+      <div class="panel-h"><h2>Custo de compra</h2><span class="foot">já com o frete</span></div>
+      <div class="pill warn" id="custoAviso" style="margin-bottom:12px;white-space:normal" hidden>Falta o custo de alguns sabores. Registre uma compra em Estoque (ou digite aqui) para o lucro sair certo.</div>
       <div class="tablewrap"><table>
-        <thead><tr><th>Sabor</th><th>Custo por picolé (R$)</th></tr></thead>
+        <thead><tr><th>Sabor</th><th>Custo atual por picolé (R$)</th></tr></thead>
         <tbody id="custoTable"></tbody>
       </table></div>
-      <details style="margin-top:14px" open>
-        <summary>Calcular pelo valor da caixa</summary>
-        <div class="fields" style="margin-top:10px">
-          <div class="field"><label for="cxValor">Paguei (R$)</label><input id="cxValor" type="number" inputmode="decimal" step="0.01" min="0" placeholder="ex.: 60,00"></div>
-          <div class="field"><label for="cxQtd">na caixa com (picolés)</label><input id="cxQtd" type="number" inputmode="numeric" step="1" min="1" placeholder="ex.: 30"></div>
-          <div class="field"><label for="cxSabor">Aplicar em</label><select id="cxSabor"></select></div>
-        </div>
-        <div class="row" style="margin-top:10px"><span id="cxRes" class="money">R$ 0,00 cada</span><button class="btn sm blue" type="button" id="cxAplicar">Aplicar</button><p class="msg" id="cxMsg"></p></div>
-      </details>
+      <p class="foot" style="margin-top:12px">O custo é atualizado sozinho quando você registra uma compra (preço + frete dividido pelos picolés). Se misturar lotes com preços diferentes no freezer, o app usa a média. Dá para corrigir à mão aqui.</p>
+      <div class="row" style="margin-top:10px"><button class="btn sm blue" type="button" id="goCompra">Registrar nova compra</button></div>
       <div class="field" style="margin-top:14px"><label for="emb">Custo extra por picolé, todos os sabores (R$) · ex.: saquinho, guardanapo</label><input id="emb" type="number" inputmode="decimal" min="0" step="0.01" placeholder="0,00"></div>
     </div>
     <div class="panel">
@@ -433,7 +458,7 @@ details summary{cursor:pointer;font-weight:600;color:var(--ink2)}
   </div>
 </section>
 
-<p class="foot" style="margin-top:20px;text-align:center">Picolé COVAFOG · informe o custo de compra de cada sabor na aba Custos para o lucro sair certo.</p>
+<p class="foot" style="margin-top:20px;text-align:center">Picolé COVAFOG · registre cada compra em Estoque → Nova compra: o app divide o frete e calcula o custo real de cada picolé.</p>
 </main>
 
 <div class="modal" id="modal" hidden><div class="box" role="dialog" aria-modal="true" aria-labelledby="mTitle">
@@ -609,7 +634,7 @@ $("perSeg").addEventListener("click",e=>{ const b=e.target.closest("button"); if
 function inPer(ts){ if(per==="tudo") return true; if(per==="hoje") return dayKey(ts)===today(); const d0=new Date(); d0.setHours(0,0,0,0); return ts >= d0.getTime() - (Number(per)-1)*864e5; }
 function renderPainel(){
   const V=S.vendas.filter(x=>inPer(x.ts)), D=S.despesas.filter(x=>inPer(x.ts));
-  const fat=V.reduce((a,x)=>a+x.total,0), cmv=V.reduce((a,x)=>a+x.custo,0), desp=D.reduce((a,x)=>a+x.valor,0), qtd=V.reduce((a,x)=>a+x.qtd,0);
+  const fat=V.reduce((a,x)=>a+x.total,0), cmv=V.reduce((a,x)=>a+x.custo,0), desp=D.filter(x=>!x.compra).reduce((a,x)=>a+x.valor,0), qtd=V.reduce((a,x)=>a+x.qtd,0);
   const luc=fat-cmv-desp;
   $("perLabel").textContent = {hoje:"Hoje",7:"Últimos 7 dias",30:"Últimos 30 dias",tudo:"Desde o início"}[per];
   $("kFat").textContent=brl(fat); $("kFatH").textContent=`${V.length} venda${V.length===1?"":"s"}`;
@@ -621,7 +646,7 @@ function renderPainel(){
     <div class="cashrow"><span>Faturamento</span><span>${brl(fat)}</span></div>
     <div class="cashrow"><span class="muted">&nbsp;&nbsp;Dinheiro · Pix · Cartão</span><span class="muted small">${brl(byPay("dinheiro"))} · ${brl(byPay("pix"))} · ${brl(byPay("cartao"))}</span></div>
     <div class="cashrow"><span>Custo dos picolés vendidos</span><span>− ${brl(cmv)}</span></div>
-    <div class="cashrow"><span>Despesas lançadas</span><span>− ${brl(desp)}</span></div>
+    <div class="cashrow"><span>Outras despesas</span><span>− ${brl(desp)}</span></div>
     <div class="cashrow tot"><span>Lucro líquido</span><span style="color:${luc<0?"var(--crit)":"var(--good)"}">${brl(luc)}</span></div>`;
   // por sabor
   const cnt={}; V.forEach(v=>Object.entries(v.itens).forEach(([s,q])=>cnt[s]=(cnt[s]||0)+q));
@@ -642,13 +667,13 @@ function renderPainel(){
   const PAG={dinheiro:"Dinheiro",pix:"Pix",cartao:"Cartão"};
   $("hist").innerHTML = H.length ? H.map(x=> x.t==="v"
     ? `<tr><td>${per==="hoje"?"":dshort(x.ts)+" "}${hhmm(x.ts)}</td><td class="l">${Object.entries(x.itens).map(([s,q])=>`${q} ${esc((sab(s)||{nome:s}).nome)}`).join(", ")}</td><td class="l muted">${esc(vn(x))}</td><td>${PAG[x.pag]}</td><td class="money">${brl(x.total)}</td><td>${brl(x.total-x.custo)}</td><td><button class="btn ghost sm" data-cancel="${x.id}">cancelar</button></td></tr>`
-    : `<tr><td>${per==="hoje"?"":dshort(x.ts)+" "}${hhmm(x.ts)}</td><td class="l"><span class="pill warn">despesa</span> ${esc(x.desc)}</td><td class="l muted">${esc(vn(x))}</td><td>${x.caixa?"Caixa":"Outro"}</td><td class="money" style="color:var(--crit)">− ${brl(x.valor)}</td><td></td><td><button class="btn ghost sm" data-deldesp="${x.id}">excluir</button></td></tr>`).join("")
+    : `<tr><td>${per==="hoje"?"":dshort(x.ts)+" "}${hhmm(x.ts)}</td><td class="l"><span class="pill ${x.compra?"or":"warn"}">${x.compra?"compra":"despesa"}</span> ${esc(x.desc)}</td><td class="l muted">${esc(vn(x))}</td><td>${x.caixa?"Caixa":"Outro"}</td><td class="money" style="color:var(--crit)">− ${brl(x.valor)}</td><td></td><td>${x.compra?"":`<button class="btn ghost sm" data-deldesp="${x.id}">excluir</button>`}</td></tr>`).join("")
     : '<tr><td colspan="7" class="l muted">Nada lançado no período.</td></tr>';
 }
 function renderDaysChart(){
   const box=$("chartDays"); const nd = per==="hoje"?7 : per==="tudo"? Math.min(60, Math.max(7, Math.ceil((Date.now()-Math.min(...S.vendas.map(v=>v.ts),Date.now()))/864e5)+1)) : Number(per);
   const days=[]; for(let i=nd-1;i>=0;i--){ const d=new Date(); d.setHours(12,0,0,0); d.setDate(d.getDate()-i); days.push(dayKey(d)); }
-  const data=days.map(k=>{ const {v,d}=dayData(k); const f=v.reduce((a,x)=>a+x.total,0); return {k, f, l:f-v.reduce((a,x)=>a+x.custo,0)-d.reduce((a,x)=>a+x.valor,0)}; });
+  const data=days.map(k=>{ const {v,d}=dayData(k); const f=v.reduce((a,x)=>a+x.total,0); return {k, f, l:f-v.reduce((a,x)=>a+x.custo,0)-d.filter(x=>!x.compra).reduce((a,x)=>a+x.valor,0)}; });
   if(!data.some(d=>d.f)){ box.innerHTML='<div class="empty">As vendas aparecem aqui dia a dia.</div>'; return; }
   const W=Math.max(300,box.clientWidth||600), H=220, m={l:52,r:8,t:12,b:26};
   const mx=Math.max(...data.map(d=>d.f),1), mn=Math.min(0,...data.map(d=>d.l));
@@ -686,33 +711,86 @@ function renderEstoque(){
     return `<tr><td><span class="sw" style="background:${esc(s.cor)}"></span>${esc(s.nome)}</td><td><b>${st}</b></td><td>${sold[s.id]||0}</td><td>${brl(Math.max(0,st)*custoUnit(s))}</td><td>${p}</td></tr>`; }).join("");
   $("stTotal").textContent = `${tot} picolés · ${brl(val)} em custo`;
   const sel=$("mSabor"), cur=sel.value; sel.innerHTML=S.sabores.map(s=>`<option value="${esc(s.id)}">${esc(s.nome)} (${stock(s.id)})</option>`).join(""); if(cur && sab(cur)) sel.value=cur;
-  const T={entrada:"Entrada",perda:"Perda",ajuste:"Contagem"};
+  const T={entrada:"Entrada",perda:"Perda",ajuste:"Contagem",compra:"Compra"};
   const M=[...S.movs].sort((a,b)=>b.ts-a.ts).slice(0,50);
-  $("movTable").innerHTML = M.length ? M.map(m=>`<tr><td>${dshort(m.ts)} ${hhmm(m.ts)}</td><td class="l">${esc((sab(m.sid)||{nome:m.sid}).nome)}</td><td>${T[m.tipo]}</td><td>${m.tipo==="ajuste"?`${m.antes} → ${m.depois}`:(m.tipo==="perda"?"−":"+")+m.qtd}</td><td class="l muted">${esc(m.obs)}</td><td><button class="btn ghost sm" data-undomov="${m.id}">desfazer</button></td></tr>`).join("")
+  renderLote();
+  $("movTable").innerHTML = M.length ? M.map(m=>`<tr><td>${dshort(m.ts)} ${hhmm(m.ts)}</td><td class="l">${esc((sab(m.sid)||{nome:m.sid}).nome)}</td><td>${T[m.tipo]}</td><td>${m.tipo==="ajuste"?`${m.antes} → ${m.depois}`:(m.tipo==="perda"?"−":"+")+m.qtd}</td><td class="l muted">${esc(m.obs)}</td><td>${m.tipo==="compra"?"":`<button class="btn ghost sm" data-undomov="${m.id}">desfazer</button>`}</td></tr>`).join("")
     : '<tr><td colspan="6" class="l muted">Nenhuma movimentação. Registre a primeira entrada de picolés.</td></tr>';
 }
-$("mTipo").addEventListener("change",()=>{ $("mQtdL").textContent = $("mTipo").value==="ajuste" ? "Quantidade contada" : "Quantidade"; $("mPagoF").hidden = $("mTipo").value!=="entrada"; });
+$("mTipo").addEventListener("change",()=>{ $("mQtdL").textContent = $("mTipo").value==="ajuste" ? "Quantidade contada" : "Quantidade"; });
 $("movForm").addEventListener("submit",e=>{
   e.preventDefault(); const sid=$("mSabor").value, tipo=$("mTipo").value, q=Math.round(num($("mQtd").value));
   if(!sid || q<0 || (tipo!=="ajuste" && q===0)){ $("mMsg").textContent="Informe a quantidade."; $("mMsg").className="msg err"; return; }
   const antes=stock(sid), depois = tipo==="entrada"?antes+q : tipo==="perda"?antes-q : q;
-  const pago=num($("mPago").value); let extra="";
-  if(tipo==="entrada" && pago>0 && q>0){ sab(sid).custo=Math.round(pago/q*100)/100; extra=` · custo ${brl(sab(sid).custo)} cada`; }
-  S.estoque[sid]=depois; S.movs.push({id:uid(), ts:Date.now(), sid, tipo, qtd:q, obs:$("mObs").value.trim(), antes, depois, pago:tipo==="entrada"&&pago>0?pago:undefined}); save();
-  $("mQtd").value=""; $("mObs").value=""; $("mPago").value=""; $("mMsg").textContent=`${sab(sid).nome}: ${antes} → ${depois}${extra}`; $("mMsg").className="msg ok"; renderAll();
+  let extra="";
+  S.estoque[sid]=depois; S.movs.push({id:uid(), ts:Date.now(), sid, tipo, qtd:q, obs:$("mObs").value.trim(), antes, depois}); save();
+  $("mQtd").value=""; $("mObs").value=""; $("mMsg").textContent=`${sab(sid).nome}: ${antes} → ${depois}${extra}`; $("mMsg").className="msg ok"; renderAll();
 });
 document.addEventListener("click",e=>{ const b=e.target.closest("[data-undomov]"); if(!b) return;
   if(b.dataset.ok!=="1"){ b.dataset.ok="1"; b.textContent="confirmar?"; setTimeout(()=>{b.dataset.ok="";b.textContent="desfazer";},3000); return; }
   const m=S.movs.find(x=>x.id===b.dataset.undomov); if(!m) return;
   S.estoque[m.sid] = stock(m.sid) - (m.depois - m.antes); S.movs=S.movs.filter(x=>x!==m); save(); renderAll(); });
 
+/* ---------- COMPRAS (LOTES) ---------- */
+// custo de cada picolé do lote = preço + (frete ÷ total de picolés da compra)
+// custo atual do sabor = média ponderada entre o que já estava no freezer e o lote novo
+let lQ={}, lP={};
+function loteCalc(){
+  const base=num($("lPreco").value), frete=num($("lFrete").value);
+  let qtd=0, valor=0;
+  S.sabores.forEach(s=>{ const q=Math.max(0,Math.round(num(lQ[s.id]))); if(q){ const p = lP[s.id]!==undefined && lP[s.id]!=="" ? num(lP[s.id]) : base; qtd+=q; valor+=q*p; } });
+  const fp = qtd? frete/qtd : 0;
+  return {base, frete, qtd, valor, total:valor+frete, fretePor:fp, custo: qtd? (valor+frete)/qtd : 0};
+}
+function renderLote(){
+  const f=document.activeElement;
+  if(!(f && f.dataset && (f.dataset.lq!==undefined || f.dataset.lp!==undefined)))
+    $("lItens").innerHTML = S.sabores.map(s=>`<tr><td><span class="sw" style="background:${esc(s.cor)}"></span>${esc(s.nome)}</td><td><input data-lq="${esc(s.id)}" type="number" inputmode="numeric" step="1" min="0" value="${lQ[s.id]||""}" placeholder="0" aria-label="Quantidade de ${esc(s.nome)}" style="width:80px;text-align:right"></td><td><input data-lp="${esc(s.id)}" type="number" inputmode="decimal" step="0.01" min="0" value="${lP[s.id]??""}" placeholder="${$("lPreco").value?brl(num($("lPreco").value)).replace("R$ ",""):"igual"}" aria-label="Preço de ${esc(s.nome)}" style="width:90px;text-align:right"></td></tr>`).join("");
+  const c=loteCalc();
+  $("lQtd").textContent=c.qtd; $("lValor").textContent=brl(c.valor); $("lFreteV").textContent=brl(c.frete); $("lFretePor").textContent=brl(c.fretePor); $("lTotal").textContent=brl(c.total); $("lCusto").textContent=brl(c.custo);
+  $("lSalvar").disabled = !c.qtd;
+  const L=[...(S.lotes||[])].sort((a,b)=>b.ts-a.ts);
+  $("lotesInfo").textContent = L.length ? `última compra: ${brl(L[0].custo)} por picolé` : "";
+  $("lotesTable").innerHTML = L.length ? L.slice(0,40).map((l,i)=>`<tr><td>${dshort(l.ts)}</td><td class="l">${l.itens.map(it=>`${it.q} ${esc((sab(it.sid)||{nome:"?"}).nome)}`).join(", ")}</td><td>${l.qtd}</td><td>${brl(l.frete)}</td><td class="money">${brl(l.total)}</td><td class="money" style="color:var(--accent)">${brl(l.custo)}</td><td>${i===0?`<button class="btn ghost sm" data-dellote="${l.id}">desfazer</button>`:""}</td></tr>`).join("")
+    : '<tr><td colspan="7" class="l muted">Nenhuma compra registrada ainda.</td></tr>';
+}
+$("lPreco").addEventListener("input",()=>{ try{ localStorage.setItem("picole.ultimoPreco",$("lPreco").value); }catch(e){} renderLote(); });
+$("lFrete").addEventListener("input",renderLote);
+$("lItens").addEventListener("input",e=>{ const t=e.target; if(t.dataset.lq!==undefined) lQ[t.dataset.lq]=t.value; else if(t.dataset.lp!==undefined) lP[t.dataset.lp]=t.value; renderLote(); });
+$("lSalvar").addEventListener("click",()=>{
+  const c=loteCalc();
+  if(!c.qtd){ $("lMsg").textContent="Coloque a quantidade de pelo menos um sabor."; $("lMsg").className="msg err"; return; }
+  if(!(c.valor>0)){ $("lMsg").textContent="Informe o preço de cada picolé."; $("lMsg").className="msg err"; return; }
+  const id=uid(), ts=Date.now(), itens=[];
+  S.sabores.forEach(s=>{ const q=Math.max(0,Math.round(num(lQ[s.id]))); if(!q) return;
+    const p = lP[s.id]!==undefined && lP[s.id]!=="" ? num(lP[s.id]) : c.base;
+    const unit = p + c.fretePor;
+    const antes=stock(s.id), base=Math.max(0,antes), custoAntes=num(s.custo);
+    const novo = base>0 && custoAntes>0 ? (base*custoAntes + q*unit)/(base+q) : unit;
+    s.custo = Math.round(novo*100)/100;
+    S.estoque[s.id]=antes+q;
+    itens.push({sid:s.id, q, preco:p, custoLote:Math.round(unit*100)/100, custoAntes});
+    S.movs.push({id:uid(), ts, sid:s.id, tipo:"compra", qtd:q, obs:`lote · ${brl(unit)} cada`, antes, depois:antes+q, lote:id});
+  });
+  const lote={id, ts, itens, qtd:c.qtd, valor:Math.round(c.valor*100)/100, frete:c.frete, total:Math.round(c.total*100)/100, custo:Math.round(c.custo*100)/100};
+  if($("lCaixa").checked){ const did=uid(); S.despesas.push({id:did, dev:S.aparelho.id, vend:S.aparelho.nome||"", ts, desc:`Compra de ${c.qtd} picolés (com frete)`, valor:lote.total, caixa:true, compra:true}); lote.despesa=did; }
+  (S.lotes=S.lotes||[]).push(lote); save();
+  lQ={}; lP={}; $("lFrete").value=""; $("lCaixa").checked=false; $("lItens").innerHTML="";
+  $("lMsg").textContent=`Compra registrada: ${c.qtd} picolés a ${brl(lote.custo)} cada (já com frete).`; $("lMsg").className="msg ok";
+  renderAll();
+});
+document.addEventListener("click",e=>{ const b=e.target.closest("[data-dellote]"); if(!b) return;
+  if(b.dataset.ok!=="1"){ b.dataset.ok="1"; b.textContent="confirmar?"; setTimeout(()=>{b.dataset.ok="";b.textContent="desfazer";},3000); return; }
+  const l=(S.lotes||[]).find(x=>x.id===b.dataset.dellote); if(!l) return;
+  l.itens.forEach(it=>{ S.estoque[it.sid]=stock(it.sid)-it.q; const s=sab(it.sid); if(s) s.custo=it.custoAntes; });
+  S.movs=S.movs.filter(m=>m.lote!==l.id); if(l.despesa) S.despesas=S.despesas.filter(d=>d.id!==l.despesa);
+  S.lotes=S.lotes.filter(x=>x!==l); save(); toast("Compra desfeita: estoque e custo voltaram como estavam."); renderAll(); });
+
 /* ---------- CUSTOS ---------- */
 function renderCustos(){
   const foc=document.activeElement;
   if(!(foc && foc.dataset && foc.dataset.custo!==undefined)) $("custoTable").innerHTML = S.sabores.map((x,i)=>`<tr><td><span class="sw" style="background:${esc(x.cor)}"></span>${esc(x.nome)}</td><td><input data-custo="${i}" type="number" inputmode="decimal" step="0.01" min="0" value="${x.custo||""}" placeholder="0,00" aria-label="Custo de ${esc(x.nome)}" style="width:110px;text-align:right"></td></tr>`).join("");
   $("custoAviso").hidden = !S.sabores.some(x=>!(num(x.custo)>0));
-  const cs=$("cxSabor"), cv=cs.value; cs.innerHTML = '<option value="*">Todos os sabores</option>'+S.sabores.map(x=>`<option value="${esc(x.id)}">${esc(x.nome)}</option>`).join(""); if(cv) cs.value=cv;
-  renderCx();
   if(document.activeElement!==$("emb")) $("emb").value = S.embalagem||"";
   $("promoOn").checked = !!S.promoOn;
   if(!tierFocus()) $("tiers").innerHTML = S.tiers.map((t,i)=>`<div class="tier"><input data-tier="${i}" data-f="q" type="number" inputmode="numeric" min="1" step="1" value="${t.q}" aria-label="Quantidade"><span class="lbl">${t.q===1?"picolé":"picolés"} por R$</span><input data-tier="${i}" data-f="p" type="number" inputmode="decimal" step="0.01" min="0" value="${t.p}" aria-label="Preço"><button type="button" class="btn ghost sm" data-delTier="${i}" aria-label="Remover" ${t.q===1?"disabled":""}>×</button></div>`).join("");
@@ -731,13 +809,7 @@ function renderSim(){ const n=Math.max(1,Math.round(num($("simQ").value))||1), p
 $("simQ").addEventListener("input",renderSim);
 $("emb").addEventListener("input",()=>{ S.embalagem=num($("emb").value); save(); renderCustos(); });
 $("custoTable").addEventListener("input",e=>{ const i=e.target.dataset.custo; if(i===undefined) return; S.sabores[i].custo=Math.max(0,num(e.target.value)); save(); renderCustos(); });
-function renderCx(){ const v=num($("cxValor").value), q=Math.round(num($("cxQtd").value)); $("cxRes").textContent = (v>0&&q>0) ? `${brl(v/q)} cada` : "Preencha valor e quantidade"; }
-$("cxValor").addEventListener("input",renderCx); $("cxQtd").addEventListener("input",renderCx);
-$("cxAplicar").addEventListener("click",()=>{ const v=num($("cxValor").value), q=Math.round(num($("cxQtd").value));
-  if(!(v>0&&q>0)){ $("cxMsg").textContent="Preencha quanto pagou e quantos vieram."; $("cxMsg").className="msg err"; return; }
-  const c=Math.round(v/q*100)/100, alvo=$("cxSabor").value;
-  S.sabores.forEach(x=>{ if(alvo==="*"||x.id===alvo) x.custo=c; }); save();
-  $("cxMsg").textContent=`Custo de ${brl(c)} aplicado${alvo==="*"?" a todos os sabores":" em "+sab(alvo).nome}.`; $("cxMsg").className="msg ok"; renderCustos(); });
+$("goCompra").addEventListener("click",()=>{ document.querySelector('[data-v="estoque"]').click(); setTimeout(()=>$("lPreco").focus(),150); });
 $("promoOn").addEventListener("change",()=>{ S.promoOn=$("promoOn").checked; save(); renderAll(); });
 $("tiers").addEventListener("input",e=>{ const i=e.target.dataset.tier; if(i===undefined) return; const f=e.target.dataset.f; const v=f==="q"?Math.round(num(e.target.value)):num(e.target.value);
   if(f==="q" && S.tiers[i].q===1 && v!==1){ $("tMsg").textContent="A faixa de 1 picolé é o preço normal e não pode mudar de quantidade."; $("tMsg").className="msg err"; return; }
@@ -805,7 +877,7 @@ $("btnShare").addEventListener("click",()=>{
   const pacote={app:"picole-covafog", tipo:"atualizacao", versao:1, geradoEm:Date.now(), de:{id:S.aparelho.id, nome:S.aparelho.nome},
     sabores:S.sabores.filter(s=>usados.has(s.id)).map(s=>({id:s.id,nome:s.nome,cor:s.cor})),
     vendas:V.map(({id,ts,itens,qtd,total,pag})=>({id,ts,itens,qtd,total,pag})),
-    despesas:D.map(({id,ts,desc,valor,caixa})=>({id,ts,desc,valor,caixa}))};
+    despesas:D.filter(x=>!x.compra).map(({id,ts,desc,valor,caixa})=>({id,ts,desc,valor,caixa}))};
   const nome=`vendas-${S.aparelho.nome.normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^A-Za-z0-9]+/g,"-").replace(/^-|-$/g,"")||"aparelho"}-${today().split("-").reverse().slice(0,2).join("-")}.json`;
   compartilhar(nome, JSON.stringify(pacote));
 });
@@ -813,6 +885,7 @@ $("btnReceive").addEventListener("click",()=>$("receiveFile").click());
 $("receiveFile").addEventListener("change",async()=>{ const f=$("receiveFile").files[0]; $("receiveFile").value=""; if(f) receberAtualizacao(await f.text()); });
 
 let pendente=null;
+try{ const up=localStorage.getItem("picole.ultimoPreco"); if(up) $("lPreco").value=up; }catch(e){}
 function receberAtualizacao(text){
   let d; try{ d=JSON.parse(text); }catch(e){ toast("Esse arquivo não é uma atualização do Picolé COVAFOG."); return; }
   if(d && Array.isArray(d.sabores) && Array.isArray(d.vendas) && d.tipo!=="atualizacao"){ toast("Esse arquivo é um backup completo. Use Ajustes → Importar backup."); return; }
