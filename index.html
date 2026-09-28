@@ -1,0 +1,869 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#10233F">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Picolé COVAFOG">
+<title>Picolé COVAFOG</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap">
+<style>
+:root{
+  --bg:#F3F5F9; --surface:#FFFFFF; --surface2:#F7F8FB; --ink:#0F1B2D; --ink2:#3B4A60; --muted:#6B7890;
+  --line:#DFE4EC; --grid:#ECEFF4; --navy:#10233F; --navy2:#1B3358; --navyInk:#F2F5FA; --navyMuted:#A3B2C9;
+  --accent:#F26B1D; --accent-soft:#FDEBDD; --accentInk:#FFFFFF; --blue:#2463C9; --blue-soft:#E4EDFB;
+  --good:#16804A; --good-bg:#E0F3E8; --warn:#9A5B00; --warn-bg:#FCEFD9; --crit:#B42318; --crit-bg:#FDE7E5; --neutral-bg:#EDF0F5;
+  --shadow:0 1px 2px rgba(15,27,45,.06);
+  --display:"Outfit",ui-sans-serif,system-ui,sans-serif; --body:"Inter",ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  color-scheme:dark; --bg:#0B111B; --surface:#131B28; --surface2:#192333; --ink:#E7EDF5; --ink2:#B5C1D2; --muted:#8593A8;
+  --line:#253145; --grid:#1B2535; --navy:#0E1A2E; --navy2:#1A2B47; --navyInk:#E7EDF5; --navyMuted:#8FA0B8;
+  --accent:#FF8A45; --accent-soft:#3A2414; --accentInk:#1A0D04; --blue:#6EA3F0; --blue-soft:#18294A;
+  --good:#5CC98C; --good-bg:#12301F; --warn:#F2AE4B; --warn-bg:#35270F; --crit:#F4867C; --crit-bg:#3B1917; --neutral-bg:#1B2535; --shadow:none;
+}}
+:root[data-theme="dark"]{
+  color-scheme:dark; --bg:#0B111B; --surface:#131B28; --surface2:#192333; --ink:#E7EDF5; --ink2:#B5C1D2; --muted:#8593A8;
+  --line:#253145; --grid:#1B2535; --navy:#0E1A2E; --navy2:#1A2B47; --navyInk:#E7EDF5; --navyMuted:#8FA0B8;
+  --accent:#FF8A45; --accent-soft:#3A2414; --accentInk:#1A0D04; --blue:#6EA3F0; --blue-soft:#18294A;
+  --good:#5CC98C; --good-bg:#12301F; --warn:#F2AE4B; --warn-bg:#35270F; --crit:#F4867C; --crit-bg:#3B1917; --neutral-bg:#1B2535; --shadow:none;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.45;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialiased}
+button{font:inherit;color:inherit}
+h1,h2,h3{font-family:var(--display);margin:0;letter-spacing:-.01em}
+h2{font-size:17px;font-weight:600;display:flex;align-items:center;gap:8px}
+h3{font-size:14.5px;font-weight:600}
+
+/* app bar */
+.appbar{background:var(--navy);color:var(--navyInk);position:sticky;top:0;z-index:5;padding-top:env(safe-area-inset-top,0px)}
+.appbar-in{max-width:1180px;margin:0 auto;padding-inline:16px;display:grid;gap:10px;padding-block:12px 0}
+.brand{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.brand-l{display:flex;align-items:center;gap:11px;min-width:0}
+.brand img{width:36px;height:36px;border-radius:9px;flex:none}
+.brand h1{font-size:19px;font-weight:700;line-height:1.1}
+.brand h1 span{color:var(--accent)}
+.brand p{margin:0;font-size:12.5px;color:var(--navyMuted)}
+.today{font-size:12.5px;color:var(--navyMuted);text-align:right}
+.today b{display:block;color:var(--navyInk);font-size:15px;font-weight:600}
+.tabs{display:flex;gap:2px;overflow-x:auto;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab{border:0;background:transparent;color:var(--navyMuted);padding:10px 15px;border-radius:9px 9px 0 0;cursor:pointer;font-weight:500;font-size:14px;display:inline-flex;gap:7px;align-items:center;white-space:nowrap}
+.tab svg{width:17px;height:17px}
+.tab:hover{color:var(--navyInk);background:var(--navy2)}
+.tab[aria-selected="true"]{background:var(--bg);color:var(--ink);font-weight:600}
+
+.wrap{max-width:1180px;margin:0 auto;padding-inline:16px;padding-block:16px 60px}
+.view{display:grid;gap:16px}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:18px;box-shadow:var(--shadow);min-width:0}
+.panel-h{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+.grid2{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:16px;align-items:start}
+.grid2e{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;align-items:start}
+@media (max-width:860px){.grid2,.grid2e{grid-template-columns:1fr}}
+.muted{color:var(--muted)} .small{font-size:12.5px}
+.foot{font-size:12.5px;color:var(--muted);margin:0}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.sp{justify-content:space-between}
+.money{font-weight:700}
+
+/* buttons & inputs */
+.btn{border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:9px;padding:9px 14px;cursor:pointer;font-weight:500;font-size:14px;display:inline-flex;align-items:center;gap:7px;justify-content:center}
+.btn:hover{background:var(--surface2)}
+.btn svg{width:16px;height:16px}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accentInk);font-weight:600}
+.btn.primary:hover{filter:brightness(1.06)}
+.btn.blue{background:var(--blue);border-color:var(--blue);color:#fff}
+.btn.ghost{border-color:transparent;background:transparent;color:var(--muted)}
+.btn.danger{color:var(--crit)}
+.btn.big{padding:15px 18px;font-size:17px;border-radius:11px;width:100%}
+.btn:disabled{opacity:.5;cursor:default;filter:none}
+.btn.sm{padding:5px 10px;font-size:13px}
+input,select,textarea{font:inherit;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:9px 11px;width:100%}
+input:focus-visible,select:focus-visible,button:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+label{font-size:12.5px;color:var(--ink2);font-weight:500}
+.field{display:grid;gap:4px}
+.fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:9px;overflow:hidden;background:var(--surface2)}
+.seg button{border:0;background:transparent;padding:8px 13px;cursor:pointer;font-size:13.5px;color:var(--ink2)}
+.seg button[aria-pressed="true"]{background:var(--surface);color:var(--blue);font-weight:600;box-shadow:inset 0 -2px 0 var(--blue)}
+.msg{font-size:13.5px;margin:0;min-height:1.2em}
+.msg.ok{color:var(--good)} .msg.err{color:var(--crit)}
+.pill{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:600;padding:2px 8px;border-radius:6px;background:var(--neutral-bg);color:var(--ink2);white-space:nowrap}
+.pill.good{background:var(--good-bg);color:var(--good)} .pill.warn{background:var(--warn-bg);color:var(--warn)} .pill.crit{background:var(--crit-bg);color:var(--crit)} .pill.or{background:var(--accent-soft);color:var(--accent)}
+
+/* PDV */
+.flavors{display:grid;grid-template-columns:repeat(auto-fill,minmax(138px,1fr));gap:10px}
+.flavor{position:relative;border:1px solid var(--line);background:var(--surface);border-radius:12px;padding:12px 12px 10px;text-align:left;cursor:pointer;display:grid;gap:6px;min-height:104px;transition:transform .08s}
+.flavor:active{transform:scale(.97)}
+.flavor:hover{border-color:var(--blue)}
+.flavor .dot{width:30px;height:30px;border-radius:50% 50% 45% 45%;display:grid;place-items:center}
+.flavor .dot svg{width:18px;height:18px;color:#fff}
+.flavor .nm{font-weight:600;font-size:15px;line-height:1.2}
+.flavor .st{font-size:12px;color:var(--muted)}
+.flavor .st.low{color:var(--warn)} .flavor .st.out{color:var(--crit)}
+.flavor .sp{font-size:11.5px;color:var(--accent);font-weight:600}
+.badge{position:absolute;top:8px;right:8px;min-width:28px;height:28px;border-radius:14px;background:var(--accent);color:var(--accentInk);font-weight:700;display:grid;place-items:center;padding:0 7px;font-size:14px}
+.cart{position:sticky;top:120px;display:grid;gap:14px}
+.cart-lines{display:grid;gap:8px}
+.cline{display:grid;grid-template-columns:1fr auto auto;gap:10px;align-items:center}
+.qty{display:inline-flex;align-items:center;border:1px solid var(--line);border-radius:9px;overflow:hidden}
+.qty button{border:0;background:var(--surface2);width:34px;height:34px;cursor:pointer;font-size:18px;font-weight:600}
+.qty span{min-width:34px;text-align:center;font-weight:600}
+.total{display:flex;justify-content:space-between;align-items:baseline;border-top:1px dashed var(--line);padding-top:12px}
+.total{gap:12px}
+.total>div:first-child{min-width:0}
+.total .v{white-space:nowrap;font-family:var(--display);font-size:38px;font-weight:700;letter-spacing:-.02em}
+.combo{font-size:13px;color:var(--ink2)}
+.quick{display:flex;gap:6px;flex-wrap:wrap}
+.troco{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border-radius:9px;background:var(--good-bg);color:var(--good);font-weight:600}
+.troco.neg{background:var(--crit-bg);color:var(--crit)}
+.empty{color:var(--muted);text-align:center;padding:22px 8px;font-size:14px}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translate(-50%,20px);background:var(--ink);color:var(--bg);padding:11px 16px;border-radius:10px;font-weight:500;opacity:0;transition:all .2s;z-index:20;pointer-events:none;max-width:calc(100% - 32px)}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+
+/* KPIs */
+.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+@media (max-width:760px){.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px;box-shadow:var(--shadow);display:grid;gap:6px;min-width:0}
+.kpi .l{font-size:12.5px;color:var(--muted);font-weight:500;display:flex;align-items:center;gap:7px}
+.kpi .ico{width:26px;height:26px;border-radius:7px;display:grid;place-items:center;background:var(--blue-soft);color:var(--blue)}
+.kpi .ico.or{background:var(--accent-soft);color:var(--accent)}
+.kpi .ico.gd{background:var(--good-bg);color:var(--good)}
+.kpi .ico svg{width:15px;height:15px}
+.kpi .v{font-family:var(--display);font-size:26px;font-weight:700;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.kpi .h{font-size:12.5px;color:var(--muted)}
+.cashbox{display:grid;gap:8px}
+.cashrow{display:flex;justify-content:space-between;gap:10px;font-size:14px}
+.cashrow>span:last-child{white-space:nowrap;text-align:right}
+.cashrow.tot{border-top:1px solid var(--line);padding-top:9px;font-weight:700;font-size:15.5px}
+
+/* charts */
+svg.chart{display:block;width:100%;height:auto}
+.hbars{display:grid;gap:9px}
+.hbar{display:grid;grid-template-columns:minmax(80px,130px) 1fr auto;gap:10px;align-items:center;font-size:13.5px}
+.hbar .track{height:12px;background:var(--grid);border-radius:4px;overflow:hidden}
+.hbar .track i{display:block;height:100%;border-radius:4px}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12.5px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{width:11px;height:11px;border-radius:3px;display:inline-block}
+
+/* tables */
+.tablewrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th{font-size:12px;color:var(--muted);font-weight:500;text-align:right;padding:8px 10px;border-bottom:1px solid var(--line);background:var(--surface2);white-space:nowrap}
+td{padding:10px;border-bottom:1px solid var(--grid);text-align:right}
+th:first-child,td:first-child{text-align:left}
+td.l,th.l{text-align:left}
+tbody tr:hover td{background:var(--surface2)}
+.sw{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:7px;vertical-align:middle}
+.ing{display:grid;grid-template-columns:1fr 120px 36px;gap:8px;align-items:center}
+.ing button{border:0;background:transparent;color:var(--muted);cursor:pointer;font-size:18px}
+.result{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.result div{background:var(--surface2);border:1px solid var(--line);border-radius:10px;padding:10px 12px;display:grid;gap:2px}
+.result b{font-family:var(--display);font-size:22px}
+.tier{display:grid;grid-template-columns:80px 108px 1fr 36px;gap:8px;align-items:center}
+.tier .lbl{white-space:nowrap;font-size:13px;color:var(--muted)}
+details summary{cursor:pointer;font-weight:600;color:var(--ink2)}
+.modal{position:fixed;inset:0;background:rgba(8,14,24,.55);display:grid;place-items:center;padding:16px;z-index:30}
+.modal .box{background:var(--surface);border-radius:14px;max-width:460px;width:100%;padding:20px;display:grid;gap:14px;box-shadow:0 10px 40px rgba(0,0,0,.3);max-height:90vh;overflow:auto}
+.sync{display:grid;gap:12px}
+.sync .btn.wa{background:#1FAF5A;border-color:#1FAF5A;color:#fff;font-weight:600}
+.sync .btn.wa:hover{filter:brightness(1.05)}
+.who{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--muted)}
+[hidden]{display:none!important}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<header class="appbar">
+  <div class="appbar-in">
+    <div class="brand">
+      <div class="brand-l">
+        <img src="icon-192.png" alt="">
+        <div><h1>Picolé <span>COVAFOG</span></h1><p>Caixa e estoque da escola</p></div>
+      </div>
+      <div class="today"><b id="hdrTotal">R$ 0,00</b>vendido hoje</div>
+    </div>
+    <nav class="tabs" role="tablist">
+      <button class="tab" role="tab" data-v="vender" aria-selected="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h12l1 5H5z"/><path d="M5 7v13a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7"/><path d="M9 12h6"/></svg>Vender</button>
+      <button class="tab" role="tab" data-v="painel" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M8 17v-5M13 17V8M18 17v-9"/></svg>Painel</button>
+      <button class="tab" role="tab" data-v="estoque" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8l-9-5-9 5 9 5 9-5z"/><path d="M3 8v8l9 5 9-5V8"/><path d="M12 13v8"/></svg>Estoque</button>
+      <button class="tab" role="tab" data-v="custos" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2"/><path d="M8 6h8M8 10h2M14 10h2M8 14h2M14 14h2M8 18h8"/></svg>Custos</button>
+      <button class="tab" role="tab" data-v="ajustes" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>Ajustes</button>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+
+<!-- ============ VENDER ============ -->
+<section class="view" id="v-vender">
+  <div class="grid2">
+    <div class="panel">
+      <div class="panel-h"><h2>Toque no sabor para adicionar</h2><span class="pill or" id="promoPill"></span></div>
+      <div class="flavors" id="flavors"></div>
+    </div>
+    <div class="panel cart">
+      <div class="row sp"><h2>Venda atual</h2><button class="btn ghost sm" id="btnClear" type="button">Limpar</button></div>
+      <div class="cart-lines" id="cartLines"></div>
+      <div class="total"><div><div class="muted small" id="cartQty">0 picolés</div><div class="combo" id="combo"></div></div><div class="v" id="cartTotal">R$ 0,00</div></div>
+      <div class="seg" role="group" aria-label="Forma de pagamento" id="paySeg" style="width:100%;display:grid;grid-template-columns:repeat(3,1fr)">
+        <button type="button" data-pay="dinheiro" aria-pressed="true">Dinheiro</button>
+        <button type="button" data-pay="pix" aria-pressed="false">Pix</button>
+        <button type="button" data-pay="cartao" aria-pressed="false">Cartão</button>
+      </div>
+      <div id="cashBox" class="field">
+        <label for="recebido">Valor recebido</label>
+        <input id="recebido" type="number" inputmode="decimal" step="0.01" min="0" placeholder="0,00">
+        <div class="quick" id="quick"></div>
+        <div class="troco" id="troco" hidden></div>
+      </div>
+      <button class="btn primary big" id="btnSell" type="button" disabled>Finalizar venda</button>
+    </div>
+  </div>
+
+  <div class="panel sync">
+    <div class="panel-h" style="margin:0"><h2><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px;color:var(--blue)"><path d="M21 12a9 9 0 0 1-15.5 6.2L3 21l.8-4.6A9 9 0 1 1 21 12z"/></svg>Enviar e receber vendas</h2><span class="foot" id="devName"></span></div>
+    <p class="foot">O aluno vende no celular dele e, no fim do dia, envia as vendas pelo WhatsApp. O professor toca no arquivo recebido, abre com o Picolé COVAFOG e as vendas entram no painel dele. Pode enviar mais de uma vez: o que já entrou não é somado de novo.</p>
+    <div class="row">
+      <select id="expPer" style="width:auto"><option value="hoje">Vendas de hoje</option><option value="tudo">Todas as vendas deste aparelho</option></select>
+      <button class="btn wa" type="button" id="btnShare"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7"/><path d="M16 6l-4-4-4 4M12 2v13"/></svg>Enviar pelo WhatsApp</button>
+      <button class="btn" type="button" id="btnReceive"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7"/><path d="M8 11l4 4 4-4M12 15V3"/></svg>Receber atualização</button>
+      <input type="file" id="receiveFile" accept=".json,application/json,text/plain" hidden>
+    </div>
+  </div>
+
+  <div class="grid2e">
+    <div class="panel">
+      <div class="panel-h"><h2>Caixa de hoje <span class="foot" style="font-weight:400">(deste aparelho)</span></h2><span class="foot" id="cxDate"></span></div>
+      <div class="cashbox">
+        <div class="field" style="margin-bottom:6px"><label for="fundo">Fundo de troco (dinheiro que começou na caixa)</label><input id="fundo" type="number" inputmode="decimal" step="0.01" min="0" placeholder="0,00"></div>
+        <div class="cashrow"><span>Vendas em dinheiro</span><span id="cxDin">R$ 0,00</span></div>
+        <div class="cashrow"><span>Vendas no Pix</span><span id="cxPix">R$ 0,00</span></div>
+        <div class="cashrow"><span>Vendas no cartão</span><span id="cxCar">R$ 0,00</span></div>
+        <div class="cashrow"><span>Despesas pagas com dinheiro da caixa</span><span id="cxDesp">R$ 0,00</span></div>
+        <div class="cashrow tot"><span>Dinheiro que deve ter na caixa</span><span id="cxEsperado">R$ 0,00</span></div>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-h"><h2>Lançar despesa</h2></div>
+      <form id="despForm" class="fields" autocomplete="off">
+        <div class="field" style="grid-column:1/-1"><label for="dDesc">Descrição</label><input id="dDesc" type="text" maxlength="60" placeholder="ex.: gelo, saquinhos, gás" required></div>
+        <div class="field"><label for="dVal">Valor (R$)</label><input id="dVal" type="number" inputmode="decimal" step="0.01" min="0.01" required></div>
+        <div class="field"><label for="dCaixa">Pago com</label><select id="dCaixa"><option value="1">Dinheiro da caixa</option><option value="0">Outro (Pix, bolso)</option></select></div>
+        <div class="row" style="grid-column:1/-1"><button class="btn" type="submit">Lançar despesa</button><p class="msg" id="dMsg"></p></div>
+      </form>
+    </div>
+  </div>
+</section>
+
+<!-- ============ PAINEL ============ -->
+<section class="view" id="v-painel" hidden>
+  <div class="row sp">
+    <div class="seg" role="group" aria-label="Período" id="perSeg">
+      <button type="button" data-p="hoje" aria-pressed="true">Hoje</button>
+      <button type="button" data-p="7" aria-pressed="false">7 dias</button>
+      <button type="button" data-p="30" aria-pressed="false">30 dias</button>
+      <button type="button" data-p="tudo" aria-pressed="false">Tudo</button>
+    </div>
+    <span class="foot" id="perLabel"></span>
+  </div>
+  <div class="kpis">
+    <div class="kpi"><span class="l"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 2v20M17 6H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></span>Faturamento</span><span class="v" id="kFat">R$ 0,00</span><span class="h" id="kFatH">&nbsp;</span></div>
+    <div class="kpi"><span class="l"><span class="ico gd"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/></svg></span>Lucro líquido</span><span class="v" id="kLuc">R$ 0,00</span><span class="h" id="kLucH">&nbsp;</span></div>
+    <div class="kpi"><span class="l"><span class="ico or"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="2" width="10" height="14" rx="5"/><path d="M12 16v6"/></svg></span>Picolés vendidos</span><span class="v" id="kQtd">0</span><span class="h" id="kQtdH">&nbsp;</span></div>
+    <div class="kpi"><span class="l"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.7 13.4a2 2 0 0 0 2 1.6h9.7a2 2 0 0 0 2-1.6L23 6H6"/></svg></span>Ticket médio</span><span class="v" id="kTic">R$ 0,00</span><span class="h" id="kTicH">&nbsp;</span></div>
+  </div>
+  <div class="grid2">
+    <div class="panel">
+      <div class="panel-h"><h2>Vendas por dia</h2><div class="legend"><span><i style="background:var(--blue)"></i>Faturamento</span><span><i style="background:var(--accent)"></i>Lucro líquido</span></div></div>
+      <div id="chartDays"></div>
+    </div>
+    <div class="panel">
+      <div class="panel-h"><h2>Onde foi o dinheiro</h2></div>
+      <div class="cashbox" id="breakdown"></div>
+    </div>
+  </div>
+  <div class="grid2e">
+    <div class="panel">
+      <div class="panel-h"><h2>Mais vendidos</h2><span class="foot">unidades</span></div>
+      <div class="hbars" id="bySabor"></div>
+    </div>
+    <div class="panel">
+      <div class="panel-h"><h2>Por vendedor</h2><span class="foot">no período</span></div>
+      <div id="byVend"></div>
+      <div class="panel-h" style="margin:18px 0 10px"><h2>Estoque baixo</h2></div>
+      <div id="lowStock"></div>
+    </div>
+  </div>
+  <div class="panel">
+    <div class="panel-h"><h2>Vendas e despesas</h2><span class="foot" id="histCount"></span></div>
+    <div class="tablewrap"><table>
+      <thead><tr><th>Hora</th><th class="l">Itens</th><th class="l">Vendedor</th><th>Pagamento</th><th>Valor</th><th>Lucro</th><th></th></tr></thead>
+      <tbody id="hist"></tbody>
+    </table></div>
+  </div>
+</section>
+
+<!-- ============ ESTOQUE ============ -->
+<section class="view" id="v-estoque" hidden>
+  <div class="grid2">
+    <div class="panel">
+      <div class="panel-h"><h2>Estoque por sabor</h2><span class="foot" id="stTotal"></span></div>
+      <div class="tablewrap"><table>
+        <thead><tr><th>Sabor</th><th>Em estoque</th><th>Vendidos</th><th>Custo parado</th><th>Situação</th></tr></thead>
+        <tbody id="stTable"></tbody>
+      </table></div>
+    </div>
+    <div class="panel">
+      <div class="panel-h"><h2>Movimentar estoque</h2></div>
+      <form id="movForm" class="fields" autocomplete="off">
+        <div class="field" style="grid-column:1/-1"><label for="mSabor">Sabor</label><select id="mSabor"></select></div>
+        <div class="field"><label for="mTipo">Tipo</label><select id="mTipo"><option value="entrada">Entrada</option><option value="perda">Perda</option><option value="ajuste">Contagem</option></select></div>
+        <div class="field"><label for="mQtd" id="mQtdL">Quantidade</label><input id="mQtd" type="number" inputmode="numeric" step="1" min="0" required></div>
+        <p class="foot" style="grid-column:1/-1">Entrada: produziu ou comprou. Perda: derreteu, caiu, estragou. Contagem: contou o freezer e quer acertar o número.</p>
+        <div class="field" style="grid-column:1/-1"><label for="mObs">Observação</label><input id="mObs" type="text" maxlength="60" placeholder="opcional"></div>
+        <div class="row" style="grid-column:1/-1"><button class="btn blue" type="submit">Registrar</button><p class="msg" id="mMsg"></p></div>
+      </form>
+    </div>
+  </div>
+  <div class="panel">
+    <div class="panel-h"><h2>Últimas movimentações</h2></div>
+    <div class="tablewrap"><table>
+      <thead><tr><th>Data</th><th class="l">Sabor</th><th>Tipo</th><th>Qtd</th><th class="l">Obs.</th><th></th></tr></thead>
+      <tbody id="movTable"></tbody>
+    </table></div>
+  </div>
+</section>
+
+<!-- ============ CUSTOS ============ -->
+<section class="view" id="v-custos" hidden>
+  <div class="grid2e">
+    <div class="panel">
+      <div class="panel-h"><h2>Custo do picolé (receita)</h2><select id="cSabor" style="width:auto;min-width:150px"></select></div>
+      <p class="foot" style="margin-bottom:12px">Lance o que gasta para fazer <b>um lote</b> desse sabor e quantos picolés o lote rende.</p>
+      <div id="ingList" style="display:grid;gap:8px"></div>
+      <div class="row" style="margin-top:10px"><button class="btn sm" type="button" id="addIng">+ Ingrediente</button></div>
+      <div class="fields" style="margin-top:14px">
+        <div class="field"><label for="rend">Rendimento do lote (picolés)</label><input id="rend" type="number" inputmode="numeric" min="1" step="1"></div>
+        <div class="field"><label for="emb">Palito + saquinho (R$ por picolé, todos os sabores)</label><input id="emb" type="number" inputmode="decimal" min="0" step="0.01"></div>
+      </div>
+      <div class="result" style="margin-top:14px">
+        <div><span class="small muted">Custo do lote</span><b id="rLote">R$ 0,00</b></div>
+        <div><span class="small muted">Custo por picolé</span><b id="rUnit">R$ 0,00</b></div>
+        <div><span class="small muted">Lucro no 1 por</span><b id="rLuc">R$ 0,00</b></div>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-h"><h2>Preço e promoção</h2><label class="row" style="gap:8px;font-size:14px"><input type="checkbox" id="promoOn" style="width:auto"> Promoção ativa</label></div>
+      <p class="foot" style="margin-bottom:10px">Cada linha é "leva X por R$ Y". A linha de 1 picolé é o preço normal. No caixa, o app sempre monta a combinação mais barata para o cliente, misturando sabores.</p>
+      <div id="tiers" style="display:grid;gap:8px"></div>
+      <div class="row" style="margin-top:10px"><button class="btn sm" type="button" id="addTier">+ Faixa de promoção</button><p class="msg" id="tMsg"></p></div>
+      <div class="tablewrap" style="margin-top:14px"><table>
+        <thead><tr><th>Leva</th><th>Paga</th><th>Sai cada</th><th>Custo médio</th><th>Lucro</th><th>Margem</th></tr></thead>
+        <tbody id="tierTable"></tbody>
+      </table></div>
+    </div>
+  </div>
+  <div class="grid2e">
+    <div class="panel">
+      <div class="panel-h"><h2>Lucro por sabor</h2><span class="foot">por picolé</span></div>
+      <div class="tablewrap"><table>
+        <thead><tr><th>Sabor</th><th>Custo</th><th id="thP1">1 por</th><th id="thPn">Na maior promoção</th></tr></thead>
+        <tbody id="flavProfit"></tbody>
+      </table></div>
+    </div>
+    <div class="panel">
+      <div class="panel-h"><h2>Simulador</h2></div>
+      <div class="fields">
+        <div class="field"><label for="simQ">Quantos picolés o cliente leva</label><input id="simQ" type="number" inputmode="numeric" min="1" step="1" value="5"></div>
+      </div>
+      <div class="result" style="margin-top:12px">
+        <div><span class="small muted">Cliente paga</span><b id="simP">R$ 0,00</b></div>
+        <div><span class="small muted">Custo</span><b id="simC">R$ 0,00</b></div>
+        <div><span class="small muted">Lucro</span><b id="simL">R$ 0,00</b></div>
+      </div>
+      <p class="combo" id="simCombo" style="margin-top:10px"></p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ AJUSTES ============ -->
+<section class="view" id="v-ajustes" hidden>
+  <div class="grid2e">
+    <div class="panel">
+      <div class="panel-h"><h2>Sabores</h2><button class="btn sm" type="button" id="addSabor">+ Sabor</button></div>
+      <div class="tablewrap"><table>
+        <thead><tr><th>Sabor</th><th>Cor</th><th>Avisar abaixo de</th><th>Preço especial</th><th></th></tr></thead>
+        <tbody id="saborTable"></tbody>
+      </table></div>
+      <p class="foot" style="margin-top:10px">Preço especial: se preencher, esse sabor sai sempre por esse valor e não entra na promoção (bom para sabor mais caro, tipo Ninho com Nutella).</p>
+    </div>
+    <div class="panel">
+      <div class="panel-h"><h2>Este aparelho</h2></div>
+      <div class="field" style="margin-bottom:18px"><label for="devNome">Nome de quem vende neste celular</label><input id="devNome" type="text" maxlength="30" placeholder="ex.: João 2ºA, Prof. Breno"><span class="foot">Aparece para o professor nas vendas enviadas pelo WhatsApp.</span></div>
+      <div class="panel-h"><h2>Backup e relatórios</h2></div>
+      <p class="foot" style="margin-bottom:12px">Os dados ficam só neste aparelho. Baixe um backup no fim do dia; para usar em outro celular, importe o arquivo lá.</p>
+      <div class="row">
+        <button class="btn" type="button" id="btnExport">Baixar backup</button>
+        <button class="btn" type="button" id="btnImport">Importar backup</button>
+        <button class="btn" type="button" id="btnCsv">Exportar vendas (planilha)</button>
+        <input type="file" id="importFile" accept="application/json,.json" hidden>
+      </div>
+      <p class="msg" id="bkMsg" style="margin-top:8px"></p>
+      <details style="margin-top:16px">
+        <summary>Apagar dados</summary>
+        <p class="foot" style="margin:8px 0">Apaga vendas, despesas e movimentações. Sabores, custos e preços continuam.</p>
+        <button class="btn danger" type="button" id="btnWipe">Apagar vendas e estoque</button>
+      </details>
+    </div>
+  </div>
+</section>
+
+<p class="foot" style="margin-top:20px;text-align:center">Picolé COVAFOG · os valores de custo que vêm preenchidos são exemplos, troque pelos seus em Custos e preços.</p>
+</main>
+
+<div class="modal" id="modal" hidden><div class="box" role="dialog" aria-modal="true" aria-labelledby="mTitle">
+  <h2 id="mTitle">Atualização recebida</h2>
+  <div id="mBody"></div>
+  <label class="row" style="gap:8px;font-size:14px" id="mStockL"><input type="checkbox" id="mStock" checked style="width:auto"> Descontar esses picolés do meu estoque</label>
+  <div class="row" style="justify-content:flex-end"><button class="btn" type="button" id="mCancel">Cancelar</button><button class="btn primary" type="button" id="mOk">Importar vendas</button></div>
+</div></div>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+(function(){
+const $ = id => document.getElementById(id);
+const KEY = "picole.covafog.v1";
+const brl = v => (v<0?"−":"")+"R$ "+Math.abs(v||0).toLocaleString("pt-BR",{minimumFractionDigits:2,maximumFractionDigits:2});
+const pct = v => isFinite(v) ? v.toLocaleString("pt-BR",{maximumFractionDigits:0})+"%" : "—";
+const esc = t => String(t??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const dayKey = d => { const x=new Date(d); const p=n=>String(n).padStart(2,"0"); return x.getFullYear()+"-"+p(x.getMonth()+1)+"-"+p(x.getDate()); };
+const today = () => dayKey(Date.now());
+const hhmm = ts => new Date(ts).toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"});
+const dshort = ts => new Date(ts).toLocaleDateString("pt-BR",{day:"2-digit",month:"2-digit"});
+const uid = () => Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+const num = v => { const n = parseFloat(String(v).replace(",",".")); return isFinite(n)?n:0; };
+const POP = '<svg viewBox="0 0 24 24" fill="currentColor"><rect x="7" y="2" width="10" height="14" rx="5"/><rect x="11" y="15" width="2" height="7" rx="1"/></svg>';
+
+/* ---------- estado ---------- */
+const DEFAULT = () => ({
+  versao:1,
+  sabores:[
+    {id:"morango", nome:"Morango", cor:"#E0457B", min:10, receita:[{item:"Polpa de morango",valor:12},{item:"Leite condensado",valor:7.5},{item:"Leite (2 L)",valor:9},{item:"Açúcar",valor:3}], rend:40},
+    {id:"chocolate", nome:"Chocolate", cor:"#7A4A2A", min:10, receita:[{item:"Achocolatado",valor:10},{item:"Leite condensado",valor:7.5},{item:"Leite (2 L)",valor:9},{item:"Açúcar",valor:2}], rend:40},
+    {id:"coco", nome:"Coco", cor:"#9AA7B4", min:10, receita:[{item:"Coco ralado",valor:8},{item:"Leite de coco",valor:6},{item:"Leite (2 L)",valor:9},{item:"Açúcar",valor:3}], rend:40},
+    {id:"uva", nome:"Uva", cor:"#7B3FB5", min:10, receita:[{item:"Suco concentrado de uva",valor:9},{item:"Açúcar",valor:3}], rend:40},
+    {id:"limao", nome:"Limão", cor:"#3FA34D", min:10, receita:[{item:"Limões",valor:6},{item:"Açúcar",valor:3}], rend:40}
+  ],
+  embalagem:0.15,
+  promoOn:true,
+  tiers:[{q:1,p:4},{q:2,p:7},{q:3,p:10}],
+  estoque:{},        // saborId -> quantidade
+  vendas:[],         // {id,ts,itens:{sid:q},qtd,total,custo,pag,recebido}
+  despesas:[],       // {id,ts,desc,valor,caixa}
+  movs:[],           // {id,ts,sid,tipo,qtd,obs,antes,depois}
+  fundos:{}          // dia -> valor
+});
+let S;
+function load(){ try{ S = JSON.parse(localStorage.getItem(KEY)||"null"); }catch(e){ S=null; } if(!S||!S.sabores) S = DEFAULT(); if(!S.aparelho) S.aparelho={id:"ap-"+uid(), nome:""}; }
+function save(){ try{ localStorage.setItem(KEY, JSON.stringify(S)); return true; }catch(e){ toast("Este navegador não está salvando (modo anônimo?)"); return false; } }
+load();
+
+const sab = id => S.sabores.find(s=>s.id===id);
+const stock = id => S.estoque[id]||0;
+function custoUnit(s){ if(!s) return 0; const lote=(s.receita||[]).reduce((a,r)=>a+num(r.valor),0); return (s.rend>0?lote/s.rend:0) + num(S.embalagem); }
+function custoMedio(){ const ss=S.sabores.filter(s=>!s.especial); if(!ss.length) return num(S.embalagem); return ss.reduce((a,s)=>a+custoUnit(s),0)/ss.length; }
+function tiersOk(){ return [...S.tiers].filter(t=>t.q>=1&&t.p>0).sort((a,b)=>a.q-b.q); }
+function unitPrice(){ const t=tiersOk().find(t=>t.q===1); return t?t.p:0; }
+
+// menor preço para n picolés combinando as faixas (programação dinâmica)
+function precoPromo(n){
+  if(n<=0) return {total:0, combo:[]};
+  const ts = S.promoOn ? tiersOk() : tiersOk().filter(t=>t.q===1);
+  if(!ts.length || !ts.some(t=>t.q===1)) return {total:n*unitPrice(), combo:[]};
+  const dp=[0], pick=[null];
+  for(let i=1;i<=n;i++){ dp[i]=Infinity; for(const t of ts){ if(t.q<=i && dp[i-t.q]+t.p < dp[i]-1e-9){ dp[i]=dp[i-t.q]+t.p; pick[i]=t; } } }
+  const cnt={}; let i=n; while(i>0){ const t=pick[i]; cnt[t.q]=(cnt[t.q]||0)+1; i-=t.q; }
+  const combo = Object.keys(cnt).map(Number).sort((a,b)=>b-a).map(q=>({q, vezes:cnt[q], p:ts.find(t=>t.q===q).p}));
+  return {total:Math.round(dp[n]*100)/100, combo};
+}
+function precoCarrinho(itens){
+  let nPromo=0, esp=0, espQ=0;
+  for(const [sid,q] of Object.entries(itens)){ const s=sab(sid); if(s && s.especial>0){ esp+=q*s.especial; espQ+=q; } else nPromo+=q; }
+  const pr = precoPromo(nPromo);
+  return {total:Math.round((pr.total+esp)*100)/100, combo:pr.combo, espQ, esp, nPromo};
+}
+function comboTxt(c){
+  const parts = c.combo.map(x => x.q===1 ? `${x.vezes} avulso${x.vezes>1?"s":""} (${brl(x.p)})` : `${x.vezes}× "${x.q} por ${brl(x.p).replace("R$ ","R$")}"`);
+  if(c.espQ) parts.push(`${c.espQ} preço especial`);
+  return parts.join(" + ");
+}
+
+/* ---------- navegação ---------- */
+let view="vender";
+document.querySelectorAll(".tab").forEach(b=>b.addEventListener("click",()=>{ view=b.dataset.v; document.querySelectorAll(".tab").forEach(t=>t.setAttribute("aria-selected",t===b)); document.querySelectorAll(".view").forEach(v=>v.hidden = v.id!=="v-"+view); renderAll(); window.scrollTo({top:0}); }));
+let toastT; function toast(t){ const el=$("toast"); el.textContent=t; el.classList.add("show"); clearTimeout(toastT); toastT=setTimeout(()=>el.classList.remove("show"),2400); }
+
+/* ---------- VENDER ---------- */
+let cart={}, pay="dinheiro";
+function cartQty(){ return Object.values(cart).reduce((a,b)=>a+b,0); }
+function renderFlavors(){
+  $("flavors").innerHTML = S.sabores.map(s=>{
+    const st=stock(s.id), inCart=cart[s.id]||0, left=st-inCart;
+    const cls = left<=0 ? "out" : left<=s.min ? "low" : "";
+    return `<button type="button" class="flavor" data-add="${esc(s.id)}" aria-label="Adicionar ${esc(s.nome)}">
+      ${inCart?`<span class="badge">${inCart}</span>`:""}
+      <span class="dot" style="background:${esc(s.cor)}">${POP}</span>
+      <span class="nm">${esc(s.nome)}</span>
+      <span class="st ${cls}">${left<=0?"sem estoque":left+" no estoque"}</span>
+      ${s.especial>0?`<span class="sp">${brl(s.especial)} fixo</span>`:""}
+    </button>`;
+  }).join("") || '<div class="empty">Cadastre os sabores em Ajustes.</div>';
+  const t=tiersOk();
+  $("promoPill").textContent = S.promoOn ? t.map(x=>`${x.q} por ${brl(x.p).replace("R$ ","R$")}`).join(" · ") : `Promoção desligada · ${brl(unitPrice())} cada`;
+}
+function renderCart(){
+  const ids = Object.keys(cart).filter(k=>cart[k]>0);
+  $("cartLines").innerHTML = ids.length ? ids.map(id=>{ const s=sab(id); return `<div class="cline"><span><span class="sw" style="background:${esc(s.cor)}"></span>${esc(s.nome)}${stock(id)<cart[id]?' <span class="pill crit">falta estoque</span>':""}</span><span class="qty"><button type="button" data-dec="${esc(id)}" aria-label="Menos">−</button><span>${cart[id]}</span><button type="button" data-add="${esc(id)}" aria-label="Mais">+</button></span><span></span></div>`; }).join("")
+    : '<div class="empty">Nenhum picolé ainda. Toque nos sabores ao lado.</div>';
+  const n=cartQty(), c=precoCarrinho(cart);
+  $("cartQty").textContent = `${n} picolé${n===1?"":"s"}`;
+  $("combo").textContent = n ? comboTxt(c) : "";
+  $("cartTotal").textContent = brl(c.total);
+  $("btnSell").disabled = !n;
+  $("btnSell").textContent = n ? `Finalizar venda · ${brl(c.total)}` : "Finalizar venda";
+  $("cashBox").hidden = pay!=="dinheiro";
+  const notes=[2,5,10,20,50,100].filter(v=>v>=c.total && c.total>0).slice(0,4);
+  $("quick").innerHTML = n ? [`<button type="button" class="btn sm" data-rec="${c.total}">Valor exato</button>`, ...notes.filter(v=>v!==c.total).map(v=>`<button type="button" class="btn sm" data-rec="${v}">${brl(v)}</button>`)].join("") : "";
+  renderTroco();
+}
+function renderTroco(){
+  const c=precoCarrinho(cart), r=num($("recebido").value), el=$("troco");
+  if(pay!=="dinheiro" || !r || !cartQty()){ el.hidden=true; return; }
+  el.hidden=false; const t=r-c.total;
+  el.className = "troco"+(t<0?" neg":"");
+  el.innerHTML = t<0 ? `<span>Falta</span><span>${brl(-t)}</span>` : `<span>Troco</span><span style="font-size:20px">${brl(t)}</span>`;
+}
+document.addEventListener("click",e=>{
+  const a=e.target.closest("[data-add]"); if(a){ const id=a.dataset.add; cart[id]=(cart[id]||0)+1; renderFlavors(); renderCart(); return; }
+  const d=e.target.closest("[data-dec]"); if(d){ const id=d.dataset.dec; cart[id]=Math.max(0,(cart[id]||0)-1); if(!cart[id]) delete cart[id]; renderFlavors(); renderCart(); return; }
+  const r=e.target.closest("[data-rec]"); if(r){ $("recebido").value=r.dataset.rec; renderTroco(); }
+});
+$("recebido").addEventListener("input",renderTroco);
+$("btnClear").addEventListener("click",()=>{ cart={}; $("recebido").value=""; renderFlavors(); renderCart(); });
+$("paySeg").addEventListener("click",e=>{ const b=e.target.closest("button"); if(!b) return; pay=b.dataset.pay; $("paySeg").querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",x===b)); renderCart(); });
+$("btnSell").addEventListener("click",()=>{
+  const n=cartQty(); if(!n) return;
+  const c=precoCarrinho(cart), rec=num($("recebido").value);
+  if(pay==="dinheiro" && rec && rec < c.total){ toast("Valor recebido menor que o total."); return; }
+  const itens={...cart}; let custo=0;
+  for(const [sid,q] of Object.entries(itens)){ custo += q*custoUnit(sab(sid)); S.estoque[sid]=stock(sid)-q; }
+  S.vendas.push({id:uid(), dev:S.aparelho.id, vend:S.aparelho.nome||"", ts:Date.now(), itens, qtd:n, total:c.total, custo:Math.round(custo*100)/100, pag:pay, recebido:pay==="dinheiro"&&rec?rec:null});
+  save();
+  const troco = pay==="dinheiro"&&rec ? ` · troco ${brl(rec-c.total)}` : "";
+  toast(`Venda registrada: ${brl(c.total)}${troco}`);
+  cart={}; $("recebido").value=""; pay="dinheiro"; $("paySeg").querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",x.dataset.pay==="dinheiro")); renderAll();
+});
+$("fundo").addEventListener("change",()=>{ S.fundos[today()] = num($("fundo").value); save(); renderCaixa(); });
+$("despForm").addEventListener("submit",e=>{
+  e.preventDefault(); const v=num($("dVal").value), d=$("dDesc").value.trim();
+  if(!d||v<=0){ $("dMsg").textContent="Preencha descrição e valor."; $("dMsg").className="msg err"; return; }
+  S.despesas.push({id:uid(), dev:S.aparelho.id, vend:S.aparelho.nome||"", ts:Date.now(), desc:d, valor:v, caixa:$("dCaixa").value==="1"}); save();
+  $("dDesc").value=""; $("dVal").value=""; $("dMsg").textContent="Despesa lançada."; $("dMsg").className="msg ok"; renderAll();
+});
+const isLocal = x => !x.dev || x.dev===S.aparelho.id;
+function dayData(k){ return { v:S.vendas.filter(x=>dayKey(x.ts)===k), d:S.despesas.filter(x=>dayKey(x.ts)===k) }; }
+function renderCaixa(){
+  const k=today(), all=dayData(k), v=all.v.filter(isLocal), d=all.d.filter(isLocal);
+  const sum=(arr,f)=>arr.reduce((a,x)=>a+f(x),0);
+  const din=sum(v.filter(x=>x.pag==="dinheiro"),x=>x.total), pix=sum(v.filter(x=>x.pag==="pix"),x=>x.total), car=sum(v.filter(x=>x.pag==="cartao"),x=>x.total);
+  const desp=sum(d.filter(x=>x.caixa),x=>x.valor), fundo=S.fundos[k]||0;
+  if(document.activeElement!==$("fundo")) $("fundo").value = fundo||"";
+  $("cxDin").textContent=brl(din); $("cxPix").textContent=brl(pix); $("cxCar").textContent=brl(car);
+  $("cxDesp").textContent= desp? "− "+brl(desp) : brl(0);
+  $("cxEsperado").textContent=brl(fundo+din-desp);
+  $("cxDate").textContent = new Date().toLocaleDateString("pt-BR",{weekday:"long",day:"numeric",month:"long"});
+  $("hdrTotal").textContent = brl(all.v.reduce((a,x)=>a+x.total,0));
+  $("devName").textContent = S.aparelho.nome ? "Este aparelho: "+S.aparelho.nome : "Dê um nome a este aparelho em Ajustes";
+}
+
+/* ---------- PAINEL ---------- */
+let per="hoje";
+$("perSeg").addEventListener("click",e=>{ const b=e.target.closest("button"); if(!b) return; per=b.dataset.p; $("perSeg").querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",x===b)); renderPainel(); });
+function inPer(ts){ if(per==="tudo") return true; if(per==="hoje") return dayKey(ts)===today(); const d0=new Date(); d0.setHours(0,0,0,0); return ts >= d0.getTime() - (Number(per)-1)*864e5; }
+function renderPainel(){
+  const V=S.vendas.filter(x=>inPer(x.ts)), D=S.despesas.filter(x=>inPer(x.ts));
+  const fat=V.reduce((a,x)=>a+x.total,0), cmv=V.reduce((a,x)=>a+x.custo,0), desp=D.reduce((a,x)=>a+x.valor,0), qtd=V.reduce((a,x)=>a+x.qtd,0);
+  const luc=fat-cmv-desp;
+  $("perLabel").textContent = {hoje:"Hoje",7:"Últimos 7 dias",30:"Últimos 30 dias",tudo:"Desde o início"}[per];
+  $("kFat").textContent=brl(fat); $("kFatH").textContent=`${V.length} venda${V.length===1?"":"s"}`;
+  $("kLuc").textContent=brl(luc); $("kLuc").style.color = luc<0?"var(--crit)":""; $("kLucH").textContent = fat? `margem ${pct(luc/fat*100)}` : "—";
+  $("kQtd").textContent=qtd.toLocaleString("pt-BR"); $("kQtdH").textContent = qtd? `média ${brl(fat/qtd)} cada` : "—";
+  $("kTic").textContent=brl(V.length?fat/V.length:0); $("kTicH").textContent = V.length? `${(qtd/V.length).toLocaleString("pt-BR",{maximumFractionDigits:1})} picolés por venda` : "—";
+  const byPay=p=>V.filter(x=>x.pag===p).reduce((a,x)=>a+x.total,0);
+  $("breakdown").innerHTML = `
+    <div class="cashrow"><span>Faturamento</span><span>${brl(fat)}</span></div>
+    <div class="cashrow"><span class="muted">&nbsp;&nbsp;Dinheiro · Pix · Cartão</span><span class="muted small">${brl(byPay("dinheiro"))} · ${brl(byPay("pix"))} · ${brl(byPay("cartao"))}</span></div>
+    <div class="cashrow"><span>Custo dos picolés vendidos</span><span>− ${brl(cmv)}</span></div>
+    <div class="cashrow"><span>Despesas lançadas</span><span>− ${brl(desp)}</span></div>
+    <div class="cashrow tot"><span>Lucro líquido</span><span style="color:${luc<0?"var(--crit)":"var(--good)"}">${brl(luc)}</span></div>`;
+  // por sabor
+  const cnt={}; V.forEach(v=>Object.entries(v.itens).forEach(([s,q])=>cnt[s]=(cnt[s]||0)+q));
+  const rows=Object.entries(cnt).sort((a,b)=>b[1]-a[1]); const mx=rows[0]?rows[0][1]:1;
+  $("bySabor").innerHTML = rows.length ? rows.map(([sid,q])=>{ const s=sab(sid)||{nome:sid,cor:"#999"}; return `<div class="hbar"><span>${esc(s.nome)}</span><span class="track"><i style="width:${q/mx*100}%;background:${esc(s.cor)}"></i></span><b>${q}</b></div>`; }).join("") : '<div class="empty">Sem vendas no período.</div>';
+  // por vendedor
+  const vn = x => isLocal(x) ? (S.aparelho.nome||"Este aparelho") : (x.vend||"Sem nome");
+  const pv={}; V.forEach(v=>{ const k=vn(v); pv[k]=pv[k]||{q:0,f:0,n:0}; pv[k].q+=v.qtd; pv[k].f+=v.total; pv[k].n++; });
+  const pvr=Object.entries(pv).sort((a,b)=>b[1].f-a[1].f);
+  $("byVend").innerHTML = pvr.length ? `<div class="cashbox">${pvr.map(([k,o])=>`<div class="cashrow"><span>${esc(k)} <span class="muted small">· ${o.q} picolés</span></span><span class="money">${brl(o.f)}</span></div>`).join("")}</div>` : '<div class="empty">Sem vendas no período.</div>';
+  // estoque baixo
+  const low=S.sabores.filter(s=>stock(s.id)<=s.min);
+  $("lowStock").innerHTML = low.length ? `<div class="cashbox">${low.map(s=>`<div class="cashrow"><span><span class="sw" style="background:${esc(s.cor)}"></span>${esc(s.nome)}</span><span class="pill ${stock(s.id)<=0?"crit":"warn"}">${stock(s.id)<=0?"zerado":stock(s.id)+" restantes"}</span></div>`).join("")}</div>` : '<div class="empty">Todos os sabores acima do mínimo.</div>';
+  renderDaysChart();
+  // histórico
+  const H=[...V.map(v=>({t:"v",...v})), ...D.map(d=>({t:"d",...d}))].sort((a,b)=>b.ts-a.ts).slice(0,80);
+  $("histCount").textContent = H.length ? `${H.length} lançamento${H.length>1?"s":""}` : "";
+  const PAG={dinheiro:"Dinheiro",pix:"Pix",cartao:"Cartão"};
+  $("hist").innerHTML = H.length ? H.map(x=> x.t==="v"
+    ? `<tr><td>${per==="hoje"?"":dshort(x.ts)+" "}${hhmm(x.ts)}</td><td class="l">${Object.entries(x.itens).map(([s,q])=>`${q} ${esc((sab(s)||{nome:s}).nome)}`).join(", ")}</td><td class="l muted">${esc(vn(x))}</td><td>${PAG[x.pag]}</td><td class="money">${brl(x.total)}</td><td>${brl(x.total-x.custo)}</td><td><button class="btn ghost sm" data-cancel="${x.id}">cancelar</button></td></tr>`
+    : `<tr><td>${per==="hoje"?"":dshort(x.ts)+" "}${hhmm(x.ts)}</td><td class="l"><span class="pill warn">despesa</span> ${esc(x.desc)}</td><td class="l muted">${esc(vn(x))}</td><td>${x.caixa?"Caixa":"Outro"}</td><td class="money" style="color:var(--crit)">− ${brl(x.valor)}</td><td></td><td><button class="btn ghost sm" data-deldesp="${x.id}">excluir</button></td></tr>`).join("")
+    : '<tr><td colspan="7" class="l muted">Nada lançado no período.</td></tr>';
+}
+function renderDaysChart(){
+  const box=$("chartDays"); const nd = per==="hoje"?7 : per==="tudo"? Math.min(60, Math.max(7, Math.ceil((Date.now()-Math.min(...S.vendas.map(v=>v.ts),Date.now()))/864e5)+1)) : Number(per);
+  const days=[]; for(let i=nd-1;i>=0;i--){ const d=new Date(); d.setHours(12,0,0,0); d.setDate(d.getDate()-i); days.push(dayKey(d)); }
+  const data=days.map(k=>{ const {v,d}=dayData(k); const f=v.reduce((a,x)=>a+x.total,0); return {k, f, l:f-v.reduce((a,x)=>a+x.custo,0)-d.reduce((a,x)=>a+x.valor,0)}; });
+  if(!data.some(d=>d.f)){ box.innerHTML='<div class="empty">As vendas aparecem aqui dia a dia.</div>'; return; }
+  const W=Math.max(300,box.clientWidth||600), H=220, m={l:52,r:8,t:12,b:26};
+  const mx=Math.max(...data.map(d=>d.f),1), mn=Math.min(0,...data.map(d=>d.l));
+  const step=[5,10,20,25,50,100,200,250,500,1000,2000].find(s=>(mx-mn)/s<=5)||5000;
+  const hi=Math.ceil(mx/step)*step, lo=Math.floor(mn/step)*step;
+  const Y=v=>m.t+(hi-v)/(hi-lo)*(H-m.t-m.b), bw=(W-m.l-m.r)/data.length;
+  let s=`<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Faturamento e lucro por dia">`;
+  for(let v=lo; v<=hi; v+=step) s+=`<line x1="${m.l}" x2="${W-m.r}" y1="${Y(v)}" y2="${Y(v)}" stroke="var(--grid)"/><text x="${m.l-6}" y="${Y(v)+4}" text-anchor="end" font-size="11" fill="var(--muted)">${v.toLocaleString("pt-BR")}</text>`;
+  const every=Math.ceil(data.length/(W/46));
+  data.forEach((d,i)=>{
+    const x=m.l+i*bw, w=Math.max(4,bw*0.62), cx=x+(bw-w)/2;
+    if(d.f) s+=`<rect x="${cx}" y="${Y(d.f)}" width="${w}" height="${Y(0)-Y(d.f)}" rx="3" fill="var(--blue)" opacity=".85"><title>${d.k.split("-").reverse().slice(0,2).join("/")}: ${brl(d.f)} faturado, ${brl(d.l)} lucro</title></rect>`;
+    if(d.l){ const y1=Y(Math.max(d.l,0)), y2=Y(Math.min(d.l,0)); s+=`<rect x="${cx+w*0.22}" y="${y1}" width="${w*0.56}" height="${Math.max(1,y2-y1)}" rx="2" fill="${d.l<0?"var(--crit)":"var(--accent)"}"/>`; }
+    if(i%every===0) s+=`<text x="${x+bw/2}" y="${H-8}" text-anchor="middle" font-size="11" fill="var(--muted)">${d.k.slice(8)}/${d.k.slice(5,7)}</text>`;
+  });
+  box.innerHTML=s+"</svg>";
+}
+document.addEventListener("click",e=>{
+  const c=e.target.closest("[data-cancel]");
+  if(c){ if(c.dataset.ok!=="1"){ c.dataset.ok="1"; c.textContent="confirmar?"; setTimeout(()=>{c.dataset.ok="";c.textContent="cancelar";},3000); return; }
+    const v=S.vendas.find(x=>x.id===c.dataset.cancel); if(!v) return;
+    Object.entries(v.itens).forEach(([sid,q])=>S.estoque[sid]=stock(sid)+q);
+    S.vendas=S.vendas.filter(x=>x!==v); save(); toast("Venda cancelada e estoque devolvido."); renderAll(); return; }
+  const dd=e.target.closest("[data-deldesp]");
+  if(dd){ if(dd.dataset.ok!=="1"){ dd.dataset.ok="1"; dd.textContent="confirmar?"; setTimeout(()=>{dd.dataset.ok="";dd.textContent="excluir";},3000); return; }
+    S.despesas=S.despesas.filter(x=>x.id!==dd.dataset.deldesp); save(); renderAll(); }
+});
+
+/* ---------- ESTOQUE ---------- */
+function renderEstoque(){
+  const sold={}; S.vendas.forEach(v=>Object.entries(v.itens).forEach(([s,q])=>sold[s]=(sold[s]||0)+q));
+  let tot=0, val=0;
+  $("stTable").innerHTML = S.sabores.map(s=>{ const st=stock(s.id); tot+=Math.max(0,st); val+=Math.max(0,st)*custoUnit(s);
+    const p = st<=0 ? '<span class="pill crit">zerado</span>' : st<=s.min ? '<span class="pill warn">baixo</span>' : '<span class="pill good">ok</span>';
+    return `<tr><td><span class="sw" style="background:${esc(s.cor)}"></span>${esc(s.nome)}</td><td><b>${st}</b></td><td>${sold[s.id]||0}</td><td>${brl(Math.max(0,st)*custoUnit(s))}</td><td>${p}</td></tr>`; }).join("");
+  $("stTotal").textContent = `${tot} picolés · ${brl(val)} em custo`;
+  const sel=$("mSabor"), cur=sel.value; sel.innerHTML=S.sabores.map(s=>`<option value="${esc(s.id)}">${esc(s.nome)} (${stock(s.id)})</option>`).join(""); if(cur && sab(cur)) sel.value=cur;
+  const T={entrada:"Entrada",perda:"Perda",ajuste:"Contagem"};
+  const M=[...S.movs].sort((a,b)=>b.ts-a.ts).slice(0,50);
+  $("movTable").innerHTML = M.length ? M.map(m=>`<tr><td>${dshort(m.ts)} ${hhmm(m.ts)}</td><td class="l">${esc((sab(m.sid)||{nome:m.sid}).nome)}</td><td>${T[m.tipo]}</td><td>${m.tipo==="ajuste"?`${m.antes} → ${m.depois}`:(m.tipo==="perda"?"−":"+")+m.qtd}</td><td class="l muted">${esc(m.obs)}</td><td><button class="btn ghost sm" data-undomov="${m.id}">desfazer</button></td></tr>`).join("")
+    : '<tr><td colspan="6" class="l muted">Nenhuma movimentação. Registre a primeira entrada de picolés.</td></tr>';
+}
+$("mTipo").addEventListener("change",()=>{ $("mQtdL").textContent = $("mTipo").value==="ajuste" ? "Quantidade contada" : "Quantidade"; });
+$("movForm").addEventListener("submit",e=>{
+  e.preventDefault(); const sid=$("mSabor").value, tipo=$("mTipo").value, q=Math.round(num($("mQtd").value));
+  if(!sid || q<0 || (tipo!=="ajuste" && q===0)){ $("mMsg").textContent="Informe a quantidade."; $("mMsg").className="msg err"; return; }
+  const antes=stock(sid), depois = tipo==="entrada"?antes+q : tipo==="perda"?antes-q : q;
+  S.estoque[sid]=depois; S.movs.push({id:uid(), ts:Date.now(), sid, tipo, qtd:q, obs:$("mObs").value.trim(), antes, depois}); save();
+  $("mQtd").value=""; $("mObs").value=""; $("mMsg").textContent=`${sab(sid).nome}: ${antes} → ${depois}`; $("mMsg").className="msg ok"; renderAll();
+});
+document.addEventListener("click",e=>{ const b=e.target.closest("[data-undomov]"); if(!b) return;
+  if(b.dataset.ok!=="1"){ b.dataset.ok="1"; b.textContent="confirmar?"; setTimeout(()=>{b.dataset.ok="";b.textContent="desfazer";},3000); return; }
+  const m=S.movs.find(x=>x.id===b.dataset.undomov); if(!m) return;
+  S.estoque[m.sid] = stock(m.sid) - (m.depois - m.antes); S.movs=S.movs.filter(x=>x!==m); save(); renderAll(); });
+
+/* ---------- CUSTOS ---------- */
+let cSid=null;
+function renderCustos(){
+  const sel=$("cSabor"); if(!cSid || !sab(cSid)) cSid = S.sabores[0]?.id;
+  sel.innerHTML = S.sabores.map(s=>`<option value="${esc(s.id)}">${esc(s.nome)}</option>`).join(""); if(cSid) sel.value=cSid;
+  const s=sab(cSid);
+  if(s){
+    if(!ingFocus()) $("ingList").innerHTML = (s.receita||[]).map((r,i)=>`<div class="ing"><input data-ing="${i}" data-f="item" value="${esc(r.item)}" placeholder="Ingrediente" aria-label="Ingrediente"><input data-ing="${i}" data-f="valor" type="number" inputmode="decimal" step="0.01" min="0" value="${r.valor??""}" placeholder="R$" aria-label="Valor em reais"><button type="button" data-delIng="${i}" aria-label="Remover">×</button></div>`).join("") || '<p class="foot">Nenhum ingrediente.</p>';
+    if(document.activeElement!==$("rend")) $("rend").value = s.rend||"";
+    const lote=(s.receita||[]).reduce((a,r)=>a+num(r.valor),0), cu=custoUnit(s), pv = s.especial>0 ? s.especial : unitPrice();
+    $("rLote").textContent=brl(lote); $("rUnit").textContent=brl(cu); $("rLuc").textContent=brl(pv-cu);
+    $("rLuc").previousElementSibling.textContent = s.especial>0 ? "Lucro (preço especial)" : "Lucro vendendo 1";
+  }
+  if(document.activeElement!==$("emb")) $("emb").value = S.embalagem;
+  $("promoOn").checked = !!S.promoOn;
+  if(!tierFocus()) $("tiers").innerHTML = S.tiers.map((t,i)=>`<div class="tier"><input data-tier="${i}" data-f="q" type="number" inputmode="numeric" min="1" step="1" value="${t.q}" aria-label="Quantidade"><span class="lbl">${t.q===1?"picolé":"picolés"} por R$</span><input data-tier="${i}" data-f="p" type="number" inputmode="decimal" step="0.01" min="0" value="${t.p}" aria-label="Preço"><button type="button" class="btn ghost sm" data-delTier="${i}" aria-label="Remover" ${t.q===1?"disabled":""}>×</button></div>`).join("");
+  const cm=custoMedio();
+  $("tierTable").innerHTML = tiersOk().map(t=>{ const each=t.p/t.q, l=t.p-t.q*cm; return `<tr><td>${t.q}</td><td>${brl(t.p)}</td><td>${brl(each)}</td><td>${brl(t.q*cm)}</td><td class="money" style="color:${l<0?"var(--crit)":"var(--good)"}">${brl(l)}</td><td>${pct(l/t.p*100)}</td></tr>`; }).join("");
+  const ts=tiersOk(), big=ts[ts.length-1];
+  $("thP1").textContent = `Vendendo 1 (${brl(unitPrice())})`; $("thPn").textContent = big&&big.q>1 ? `No ${big.q} por ${brl(big.p)}` : "Promoção";
+  $("flavProfit").innerHTML = S.sabores.map(s=>{ const cu=custoUnit(s); if(s.especial>0) return `<tr><td><span class="sw" style="background:${esc(s.cor)}"></span>${esc(s.nome)}</td><td>${brl(cu)}</td><td colspan="2">${brl(s.especial-cu)} <span class="pill or">preço especial</span></td></tr>`;
+    const l1=unitPrice()-cu, ln= big? big.p/big.q-cu : l1; return `<tr><td><span class="sw" style="background:${esc(s.cor)}"></span>${esc(s.nome)}</td><td>${brl(cu)}</td><td style="color:${l1<0?"var(--crit)":""}">${brl(l1)}</td><td style="color:${ln<0?"var(--crit)":""}">${brl(ln)}</td></tr>`; }).join("");
+  renderSim();
+}
+const ingFocus = () => document.activeElement && document.activeElement.dataset && document.activeElement.dataset.ing!==undefined;
+const tierFocus = () => document.activeElement && document.activeElement.dataset && document.activeElement.dataset.tier!==undefined;
+function renderSim(){ const n=Math.max(1,Math.round(num($("simQ").value))||1), pr=precoPromo(n), c=n*custoMedio();
+  $("simP").textContent=brl(pr.total); $("simC").textContent=brl(c); $("simL").textContent=brl(pr.total-c); $("simL").style.color = pr.total-c<0?"var(--crit)":"";
+  $("simCombo").textContent = "Combinação: "+comboTxt({combo:pr.combo,espQ:0}) + ` · custo médio de ${brl(custoMedio())} por picolé`; }
+$("simQ").addEventListener("input",renderSim);
+$("cSabor").addEventListener("change",()=>{ cSid=$("cSabor").value; $("ingList").innerHTML=""; renderCustos(); });
+$("ingList").addEventListener("input",e=>{ const i=e.target.dataset.ing; if(i===undefined) return; const s=sab(cSid); const f=e.target.dataset.f; s.receita[i][f] = f==="valor"? num(e.target.value) : e.target.value; save(); renderCustos(); });
+$("ingList").addEventListener("click",e=>{ const b=e.target.closest("[data-delIng]"); if(!b) return; sab(cSid).receita.splice(Number(b.dataset.deling),1); save(); $("ingList").innerHTML=""; renderCustos(); });
+$("addIng").addEventListener("click",()=>{ const s=sab(cSid); if(!s) return; (s.receita=s.receita||[]).push({item:"",valor:0}); save(); renderCustos(); const ins=$("ingList").querySelectorAll('input[data-f="item"]'); ins[ins.length-1]?.focus(); });
+$("rend").addEventListener("input",()=>{ const s=sab(cSid); if(!s) return; s.rend=Math.max(0,Math.round(num($("rend").value))); save(); renderCustos(); });
+$("emb").addEventListener("input",()=>{ S.embalagem=num($("emb").value); save(); renderCustos(); });
+$("promoOn").addEventListener("change",()=>{ S.promoOn=$("promoOn").checked; save(); renderAll(); });
+$("tiers").addEventListener("input",e=>{ const i=e.target.dataset.tier; if(i===undefined) return; const f=e.target.dataset.f; const v=f==="q"?Math.round(num(e.target.value)):num(e.target.value);
+  if(f==="q" && S.tiers[i].q===1 && v!==1){ $("tMsg").textContent="A faixa de 1 picolé é o preço normal e não pode mudar de quantidade."; $("tMsg").className="msg err"; return; }
+  if(f==="q" && v!==S.tiers[i].q && S.tiers.some((t,j)=>j!=i && t.q===v)){ $("tMsg").textContent="Já existe uma faixa com essa quantidade."; $("tMsg").className="msg err"; return; }
+  $("tMsg").textContent=""; S.tiers[i][f]=v; save(); renderCustos(); renderFlavors(); renderCart(); });
+$("tiers").addEventListener("click",e=>{ const b=e.target.closest("[data-delTier]"); if(!b) return; S.tiers.splice(Number(b.dataset.deltier),1); save(); $("tiers").innerHTML=""; renderAll(); });
+$("addTier").addEventListener("click",()=>{ const mq=Math.max(...S.tiers.map(t=>t.q)); S.tiers.push({q:mq+1,p:Math.round(unitPrice()*(mq+1)*0.8)}); save(); renderAll(); });
+
+/* ---------- AJUSTES ---------- */
+function renderAjustes(){
+  if(document.activeElement!==$("devNome")) $("devNome").value = S.aparelho.nome||"";
+  const f=document.activeElement; if(f && f.dataset && f.dataset.sab!==undefined) return;
+  $("saborTable").innerHTML = S.sabores.map((s,i)=>`<tr>
+    <td><input data-sab="${i}" data-f="nome" value="${esc(s.nome)}" aria-label="Nome do sabor" style="min-width:120px"></td>
+    <td><input data-sab="${i}" data-f="cor" type="color" value="${esc(s.cor)}" aria-label="Cor" style="width:44px;padding:2px;height:36px"></td>
+    <td><input data-sab="${i}" data-f="min" type="number" inputmode="numeric" min="0" value="${s.min}" aria-label="Estoque mínimo" style="width:80px"></td>
+    <td><input data-sab="${i}" data-f="especial" type="number" inputmode="decimal" step="0.01" min="0" value="${s.especial||""}" placeholder="—" aria-label="Preço especial" style="width:90px"></td>
+    <td><button type="button" class="btn ghost sm danger" data-delsab="${i}">remover</button></td></tr>`).join("");
+}
+$("devNome").addEventListener("input",()=>{ S.aparelho.nome=$("devNome").value.trim(); save(); renderCaixa(); });
+$("saborTable").addEventListener("input",e=>{ const i=e.target.dataset.sab; if(i===undefined) return; const f=e.target.dataset.f; let v=e.target.value;
+  if(f==="min") v=Math.max(0,Math.round(num(v))); if(f==="especial") v=num(v)>0?num(v):0; S.sabores[i][f]=v; save(); renderFlavors(); renderCart(); });
+$("saborTable").addEventListener("click",e=>{ const b=e.target.closest("[data-delsab]"); if(!b) return;
+  if(b.dataset.ok!=="1"){ b.dataset.ok="1"; b.textContent="confirmar?"; setTimeout(()=>{b.dataset.ok="";b.textContent="remover";},3000); return; }
+  const s=S.sabores[Number(b.dataset.delsab)]; S.sabores.splice(Number(b.dataset.delsab),1); delete cart[s.id]; save(); renderAll(); });
+$("addSabor").addEventListener("click",()=>{ const cores=["#E0457B","#F2A31D","#2E9CCA","#3FA34D","#7B3FB5","#D64533","#1F9E8F"]; S.sabores.push({id:uid(), nome:"Novo sabor", cor:cores[S.sabores.length%cores.length], min:10, receita:[], rend:40}); save(); renderAll(); const ins=$("saborTable").querySelectorAll('input[data-f="nome"]'); const last=ins[ins.length-1]; last?.focus(); last?.select(); });
+function dl(name, text, type){ if(window.AndroidApp && AndroidApp.saveFile){ try{ AndroidApp.saveFile(name, type, text); toast("Arquivo salvo em Downloads: "+name); }catch(e){ toast("Não foi possível salvar o arquivo."); } return; } const a=document.createElement("a"); a.href=URL.createObjectURL(new Blob([text],{type})); a.download=name; document.body.appendChild(a); a.click(); setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},500); }
+$("btnExport").addEventListener("click",()=>{ dl(`picole-covafog-backup-${today()}.json`, JSON.stringify(S), "application/json"); $("bkMsg").textContent="Backup baixado."; $("bkMsg").className="msg ok"; });
+$("btnImport").addEventListener("click",()=>$("importFile").click());
+$("importFile").addEventListener("change",async()=>{ const f=$("importFile").files[0]; $("importFile").value=""; if(!f) return;
+  try{ const d=JSON.parse(await f.text()); if(!d||!Array.isArray(d.sabores)||!Array.isArray(d.vendas)) throw 0; S={...DEFAULT(),...d}; save(); cart={}; renderAll(); $("bkMsg").textContent=`Backup importado: ${S.vendas.length} vendas.`; $("bkMsg").className="msg ok"; }
+  catch(e){ $("bkMsg").textContent="Arquivo de backup inválido."; $("bkMsg").className="msg err"; } });
+$("btnCsv").addEventListener("click",()=>{
+  const n=v=>String((Math.round(v*100)/100)).replace(".",",");
+  const vnm = x => isLocal(x) ? (S.aparelho.nome||"Este aparelho") : (x.vend||"");
+  const rows=["data;hora;tipo;vendedor;itens;quantidade;pagamento;valor;custo;lucro"];
+  S.vendas.forEach(v=>rows.push([dayKey(v.ts).split("-").reverse().join("/"),hhmm(v.ts),"venda",'"'+vnm(v).replace(/"/g,'""')+'"','"'+Object.entries(v.itens).map(([s,q])=>`${q} ${(sab(s)||{nome:s}).nome}`).join(", ")+'"',v.qtd,v.pag,n(v.total),n(v.custo),n(v.total-v.custo)].join(";")));
+  S.despesas.forEach(d=>rows.push([dayKey(d.ts).split("-").reverse().join("/"),hhmm(d.ts),"despesa",'"'+vnm(d).replace(/"/g,'""')+'"','"'+d.desc.replace(/"/g,'""')+'"',"",d.caixa?"caixa":"outro","-"+n(d.valor),"",""].join(";")));
+  dl(`picole-covafog-vendas-${today()}.csv`,"﻿"+rows.join("\n"),"text/csv"); });
+$("btnWipe").addEventListener("click",e=>{ const b=e.currentTarget; if(b.dataset.ok!=="1"){ b.dataset.ok="1"; b.textContent="Toque de novo para confirmar"; setTimeout(()=>{b.dataset.ok="";b.textContent="Apagar vendas e estoque";},4000); return; }
+  S.vendas=[]; S.despesas=[]; S.movs=[]; S.estoque={}; S.fundos={}; save(); cart={}; renderAll(); toast("Vendas e estoque apagados."); b.dataset.ok=""; b.textContent="Apagar vendas e estoque"; });
+
+/* ---------- enviar / receber pelo WhatsApp ---------- */
+async function compartilhar(name, text){
+  const type="application/json";
+  if(window.AndroidApp && AndroidApp.shareFile){ try{ AndroidApp.shareFile(name, type, text); }catch(e){ toast("Não foi possível abrir o compartilhamento."); } return; }
+  try{
+    const f=new File([text], name, {type});
+    if(navigator.canShare && navigator.canShare({files:[f]})){ await navigator.share({files:[f], title:"Vendas Picolé COVAFOG"}); return; }
+  }catch(e){ if(e && e.name==="AbortError") return; }
+  dl(name, text, type); toast("Arquivo baixado. Envie ele pelo WhatsApp como documento.");
+}
+$("btnShare").addEventListener("click",()=>{
+  if(!S.aparelho.nome){
+    const n=(window.prompt ? window.prompt("Seu nome (vai aparecer para o professor):","") : "")||"";
+    if(n.trim()){ S.aparelho.nome=n.trim().slice(0,30); save(); renderCaixa(); }
+    else { toast("Coloque seu nome em Ajustes antes de enviar."); document.querySelector('[data-v="ajustes"]').click(); setTimeout(()=>$("devNome").focus(),200); return; }
+  }
+  const hoje = $("expPer").value==="hoje";
+  const V=S.vendas.filter(x=>isLocal(x) && (!hoje || dayKey(x.ts)===today()));
+  const D=S.despesas.filter(x=>isLocal(x) && (!hoje || dayKey(x.ts)===today()));
+  if(!V.length && !D.length){ toast(hoje?"Nenhuma venda hoje neste aparelho.":"Nenhuma venda neste aparelho."); return; }
+  const usados=new Set(); V.forEach(v=>Object.keys(v.itens).forEach(k=>usados.add(k)));
+  const pacote={app:"picole-covafog", tipo:"atualizacao", versao:1, geradoEm:Date.now(), de:{id:S.aparelho.id, nome:S.aparelho.nome},
+    sabores:S.sabores.filter(s=>usados.has(s.id)).map(s=>({id:s.id,nome:s.nome,cor:s.cor})),
+    vendas:V.map(({id,ts,itens,qtd,total,pag})=>({id,ts,itens,qtd,total,pag})),
+    despesas:D.map(({id,ts,desc,valor,caixa})=>({id,ts,desc,valor,caixa}))};
+  const nome=`vendas-${S.aparelho.nome.normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^A-Za-z0-9]+/g,"-").replace(/^-|-$/g,"")||"aparelho"}-${today().split("-").reverse().slice(0,2).join("-")}.json`;
+  compartilhar(nome, JSON.stringify(pacote));
+});
+$("btnReceive").addEventListener("click",()=>$("receiveFile").click());
+$("receiveFile").addEventListener("change",async()=>{ const f=$("receiveFile").files[0]; $("receiveFile").value=""; if(f) receberAtualizacao(await f.text()); });
+
+let pendente=null;
+function receberAtualizacao(text){
+  let d; try{ d=JSON.parse(text); }catch(e){ toast("Esse arquivo não é uma atualização do Picolé COVAFOG."); return; }
+  if(d && Array.isArray(d.sabores) && Array.isArray(d.vendas) && d.tipo!=="atualizacao"){ toast("Esse arquivo é um backup completo. Use Ajustes → Importar backup."); return; }
+  if(!d || d.app!=="picole-covafog" || d.tipo!=="atualizacao" || !Array.isArray(d.vendas)){ toast("Esse arquivo não é uma atualização do Picolé COVAFOG."); return; }
+  if(d.de && d.de.id===S.aparelho.id){ toast("Essa atualização saiu deste próprio aparelho."); return; }
+  const ids=new Set(S.vendas.map(v=>v.id)), dids=new Set(S.despesas.map(x=>x.id));
+  const novas=d.vendas.filter(v=>v && v.id && !ids.has(v.id)), novasD=(d.despesas||[]).filter(x=>x && x.id && !dids.has(x.id));
+  const rep=d.vendas.length-novas.length;
+  const tot=novas.reduce((a,v)=>a+num(v.total),0), q=novas.reduce((a,v)=>a+num(v.qtd),0);
+  const nome=(d.de&&d.de.nome)||"outro aparelho";
+  pendente={d, novas, novasD};
+  $("mTitle").textContent=`Vendas de ${nome}`;
+  $("mBody").innerHTML = novas.length||novasD.length ? `<div class="cashbox">
+      <div class="cashrow"><span>Vendas novas</span><span class="money">${novas.length}</span></div>
+      <div class="cashrow"><span>Picolés</span><span>${q}</span></div>
+      <div class="cashrow"><span>Valor vendido</span><span class="money">${brl(tot)}</span></div>
+      ${novasD.length?`<div class="cashrow"><span>Despesas</span><span>− ${brl(novasD.reduce((a,x)=>a+num(x.valor),0))}</span></div>`:""}
+      ${rep?`<div class="cashrow muted small"><span>Já importadas antes (ignoradas)</span><span>${rep}</span></div>`:""}
+      <p class="foot">Enviado em ${new Date(d.geradoEm||Date.now()).toLocaleString("pt-BR",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"})}</p></div>`
+    : `<p>Tudo desse arquivo já foi importado antes. Nada novo para somar.</p>`;
+  $("mOk").hidden = !(novas.length||novasD.length); $("mStockL").hidden = !novas.length;
+  $("modal").hidden=false;
+}
+window.receberAtualizacao = receberAtualizacao;
+$("mCancel").addEventListener("click",()=>{ $("modal").hidden=true; pendente=null; });
+$("mOk").addEventListener("click",()=>{
+  if(!pendente) return; const {d,novas,novasD}=pendente, desconta=$("mStock").checked;
+  const nome=(d.de&&d.de.nome)||"Outro aparelho", dev=(d.de&&d.de.id)||"ext";
+  // liga sabores do aluno aos do professor (pelo id, senão pelo nome; se não existir, cria)
+  const mapa={};
+  (d.sabores||[]).forEach(s=>{ let m=sab(s.id) || S.sabores.find(x=>x.nome.trim().toLowerCase()===String(s.nome||"").trim().toLowerCase());
+    if(!m){ m={id:uid(), nome:String(s.nome||"Sabor").slice(0,30), cor:s.cor||"#888888", min:10, receita:[], rend:40}; S.sabores.push(m); }
+    mapa[s.id]=m.id; });
+  novas.forEach(v=>{ const itens={}; let custo=0;
+    Object.entries(v.itens||{}).forEach(([sid,qq])=>{ const id=mapa[sid]||sid; const n=Math.round(num(qq)); itens[id]=(itens[id]||0)+n; custo+=n*custoUnit(sab(id)); if(desconta) S.estoque[id]=stock(id)-n; });
+    S.vendas.push({id:v.id, dev, vend:nome, ts:num(v.ts)||Date.now(), itens, qtd:Math.round(num(v.qtd)), total:num(v.total), custo:Math.round(custo*100)/100, pag:["dinheiro","pix","cartao"].includes(v.pag)?v.pag:"dinheiro", recebido:null}); });
+  novasD.forEach(x=>S.despesas.push({id:x.id, dev, vend:nome, ts:num(x.ts)||Date.now(), desc:String(x.desc||"").slice(0,60), valor:num(x.valor), caixa:!!x.caixa}));
+  save(); $("modal").hidden=true; pendente=null;
+  toast(`${novas.length} venda${novas.length===1?"":"s"} de ${nome} importada${novas.length===1?"":"s"}.`);
+  document.querySelector('[data-v="painel"]').click();
+});
+
+/* ---------- render ---------- */
+function renderAll(){
+  renderFlavors(); renderCart(); renderCaixa();
+  if(view==="painel") renderPainel();
+  if(view==="estoque") renderEstoque();
+  if(view==="custos") renderCustos();
+  if(view==="ajustes") renderAjustes();
+}
+let rt; window.addEventListener("resize",()=>{ clearTimeout(rt); rt=setTimeout(()=>{ if(view==="painel") renderDaysChart(); },150); });
+renderAll();
+// ao virar o dia com o app aberto
+setInterval(renderCaixa, 60000);
+})();
+</script>
+<script>
+if ("serviceWorker" in navigator && location.protocol.startsWith("http")) window.addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {}));
+</script>
+</body>
+</html>
