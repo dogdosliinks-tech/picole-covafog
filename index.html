@@ -53,6 +53,7 @@ h3{font-size:14.5px;font-weight:600}
 .today{font-size:12.5px;color:var(--navyMuted);text-align:right}
 .today b{display:block;color:var(--navyInk);font-size:15px;font-weight:600}
 .tabs{display:flex;gap:2px;overflow-x:auto;scrollbar-width:none}
+@media (max-width:620px){.tabs{display:grid;grid-template-columns:repeat(5,1fr);gap:0}.tab{flex-direction:column;gap:3px!important;padding:8px 2px!important;font-size:11.5px!important;justify-content:center}.tab svg{width:20px!important;height:20px!important}}
 .tabs::-webkit-scrollbar{display:none}
 .tab{border:0;background:transparent;color:var(--navyMuted);padding:10px 15px;border-radius:9px 9px 0 0;cursor:pointer;font-weight:500;font-size:14px;display:inline-flex;gap:7px;align-items:center;white-space:nowrap}
 .tab svg{width:17px;height:17px}
@@ -160,13 +161,14 @@ th{font-size:12px;color:var(--muted);font-weight:500;text-align:right;padding:8p
 td{padding:10px;border-bottom:1px solid var(--grid);text-align:right}
 th:first-child,td:first-child{text-align:left}
 td.l,th.l{text-align:left}
+td{white-space:nowrap} td.l{white-space:normal}
 tbody tr:hover td{background:var(--surface2)}
 .sw{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:7px;vertical-align:middle}
 .ing{display:grid;grid-template-columns:1fr 120px 36px;gap:8px;align-items:center}
 .ing button{border:0;background:transparent;color:var(--muted);cursor:pointer;font-size:18px}
 .result{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
 .result div{background:var(--surface2);border:1px solid var(--line);border-radius:10px;padding:10px 12px;display:grid;gap:2px}
-.result b{font-family:var(--display);font-size:22px}
+.result b{font-family:var(--display);font-size:clamp(16px,4.6vw,22px);white-space:nowrap}
 .tier{display:grid;grid-template-columns:80px 108px 1fr 36px;gap:8px;align-items:center}
 .tier .lbl{white-space:nowrap;font-size:13px;color:var(--muted)}
 details summary{cursor:pointer;font-weight:600;color:var(--ink2)}
@@ -207,7 +209,7 @@ details summary{cursor:pointer;font-weight:600;color:var(--ink2)}
 <section class="view" id="v-vender">
   <div class="grid2">
     <div class="panel">
-      <div class="panel-h"><h2>Toque no sabor para adicionar</h2><span class="pill or" id="promoPill"></span></div>
+      <div class="panel-h"><h2>Toque no sabor para adicionar</h2><div class="row" style="gap:8px"><span class="pill or" id="promoPill"></span><button class="btn sm" type="button" id="btnEditSab">Editar sabores</button></div></div>
       <div class="flavors" id="flavors"></div>
     </div>
     <div class="panel cart">
@@ -328,7 +330,8 @@ details summary{cursor:pointer;font-weight:600;color:var(--ink2)}
         <div class="field" style="grid-column:1/-1"><label for="mSabor">Sabor</label><select id="mSabor"></select></div>
         <div class="field"><label for="mTipo">Tipo</label><select id="mTipo"><option value="entrada">Entrada</option><option value="perda">Perda</option><option value="ajuste">Contagem</option></select></div>
         <div class="field"><label for="mQtd" id="mQtdL">Quantidade</label><input id="mQtd" type="number" inputmode="numeric" step="1" min="0" required></div>
-        <p class="foot" style="grid-column:1/-1">Entrada: produziu ou comprou. Perda: derreteu, caiu, estragou. Contagem: contou o freezer e quer acertar o número.</p>
+        <div class="field" id="mPagoF" style="grid-column:1/-1"><label for="mPago">Valor pago na compra (R$, opcional)</label><input id="mPago" type="number" inputmode="decimal" step="0.01" min="0" placeholder="se preencher, atualiza o custo do sabor"></div>
+        <p class="foot" style="grid-column:1/-1">Entrada: chegou picolé comprado. Perda: derreteu, caiu, estragou. Contagem: contou o freezer e quer acertar o número.</p>
         <div class="field" style="grid-column:1/-1"><label for="mObs">Observação</label><input id="mObs" type="text" maxlength="60" placeholder="opcional"></div>
         <div class="row" style="grid-column:1/-1"><button class="btn blue" type="submit">Registrar</button><p class="msg" id="mMsg"></p></div>
       </form>
@@ -347,19 +350,22 @@ details summary{cursor:pointer;font-weight:600;color:var(--ink2)}
 <section class="view" id="v-custos" hidden>
   <div class="grid2e">
     <div class="panel">
-      <div class="panel-h"><h2>Custo do picolé (receita)</h2><select id="cSabor" style="width:auto;min-width:150px"></select></div>
-      <p class="foot" style="margin-bottom:12px">Lance o que gasta para fazer <b>um lote</b> desse sabor e quantos picolés o lote rende.</p>
-      <div id="ingList" style="display:grid;gap:8px"></div>
-      <div class="row" style="margin-top:10px"><button class="btn sm" type="button" id="addIng">+ Ingrediente</button></div>
-      <div class="fields" style="margin-top:14px">
-        <div class="field"><label for="rend">Rendimento do lote (picolés)</label><input id="rend" type="number" inputmode="numeric" min="1" step="1"></div>
-        <div class="field"><label for="emb">Palito + saquinho (R$ por picolé, todos os sabores)</label><input id="emb" type="number" inputmode="decimal" min="0" step="0.01"></div>
-      </div>
-      <div class="result" style="margin-top:14px">
-        <div><span class="small muted">Custo do lote</span><b id="rLote">R$ 0,00</b></div>
-        <div><span class="small muted">Custo por picolé</span><b id="rUnit">R$ 0,00</b></div>
-        <div><span class="small muted">Lucro no 1 por</span><b id="rLuc">R$ 0,00</b></div>
-      </div>
+      <div class="panel-h"><h2>Custo de compra</h2><span class="foot">quanto vocês pagam em cada picolé</span></div>
+      <div class="pill warn" id="custoAviso" style="margin-bottom:12px;white-space:normal" hidden>Falta informar o custo de alguns sabores. Sem ele o lucro aparece maior do que é.</div>
+      <div class="tablewrap"><table>
+        <thead><tr><th>Sabor</th><th>Custo por picolé (R$)</th></tr></thead>
+        <tbody id="custoTable"></tbody>
+      </table></div>
+      <details style="margin-top:14px" open>
+        <summary>Calcular pelo valor da caixa</summary>
+        <div class="fields" style="margin-top:10px">
+          <div class="field"><label for="cxValor">Paguei (R$)</label><input id="cxValor" type="number" inputmode="decimal" step="0.01" min="0" placeholder="ex.: 60,00"></div>
+          <div class="field"><label for="cxQtd">na caixa com (picolés)</label><input id="cxQtd" type="number" inputmode="numeric" step="1" min="1" placeholder="ex.: 30"></div>
+          <div class="field"><label for="cxSabor">Aplicar em</label><select id="cxSabor"></select></div>
+        </div>
+        <div class="row" style="margin-top:10px"><span id="cxRes" class="money">R$ 0,00 cada</span><button class="btn sm blue" type="button" id="cxAplicar">Aplicar</button><p class="msg" id="cxMsg"></p></div>
+      </details>
+      <div class="field" style="margin-top:14px"><label for="emb">Custo extra por picolé, todos os sabores (R$) · ex.: saquinho, guardanapo</label><input id="emb" type="number" inputmode="decimal" min="0" step="0.01" placeholder="0,00"></div>
     </div>
     <div class="panel">
       <div class="panel-h"><h2>Preço e promoção</h2><label class="row" style="gap:8px;font-size:14px"><input type="checkbox" id="promoOn" style="width:auto"> Promoção ativa</label></div>
@@ -401,7 +407,7 @@ details summary{cursor:pointer;font-weight:600;color:var(--ink2)}
     <div class="panel">
       <div class="panel-h"><h2>Sabores</h2><button class="btn sm" type="button" id="addSabor">+ Sabor</button></div>
       <div class="tablewrap"><table>
-        <thead><tr><th>Sabor</th><th>Cor</th><th>Avisar abaixo de</th><th>Preço especial</th><th></th></tr></thead>
+        <thead><tr><th>Sabor</th><th>Cor</th><th>Custo (R$)</th><th>Avisar abaixo de</th><th>Preço especial</th><th></th></tr></thead>
         <tbody id="saborTable"></tbody>
       </table></div>
       <p class="foot" style="margin-top:10px">Preço especial: se preencher, esse sabor sai sempre por esse valor e não entra na promoção (bom para sabor mais caro, tipo Ninho com Nutella).</p>
@@ -427,7 +433,7 @@ details summary{cursor:pointer;font-weight:600;color:var(--ink2)}
   </div>
 </section>
 
-<p class="foot" style="margin-top:20px;text-align:center">Picolé COVAFOG · os valores de custo que vêm preenchidos são exemplos, troque pelos seus em Custos e preços.</p>
+<p class="foot" style="margin-top:20px;text-align:center">Picolé COVAFOG · informe o custo de compra de cada sabor na aba Custos para o lucro sair certo.</p>
 </main>
 
 <div class="modal" id="modal" hidden><div class="box" role="dialog" aria-modal="true" aria-labelledby="mTitle">
@@ -457,13 +463,13 @@ const POP = '<svg viewBox="0 0 24 24" fill="currentColor"><rect x="7" y="2" widt
 const DEFAULT = () => ({
   versao:1,
   sabores:[
-    {id:"morango", nome:"Morango", cor:"#E0457B", min:10, receita:[{item:"Polpa de morango",valor:12},{item:"Leite condensado",valor:7.5},{item:"Leite (2 L)",valor:9},{item:"Açúcar",valor:3}], rend:40},
-    {id:"chocolate", nome:"Chocolate", cor:"#7A4A2A", min:10, receita:[{item:"Achocolatado",valor:10},{item:"Leite condensado",valor:7.5},{item:"Leite (2 L)",valor:9},{item:"Açúcar",valor:2}], rend:40},
-    {id:"coco", nome:"Coco", cor:"#9AA7B4", min:10, receita:[{item:"Coco ralado",valor:8},{item:"Leite de coco",valor:6},{item:"Leite (2 L)",valor:9},{item:"Açúcar",valor:3}], rend:40},
-    {id:"uva", nome:"Uva", cor:"#7B3FB5", min:10, receita:[{item:"Suco concentrado de uva",valor:9},{item:"Açúcar",valor:3}], rend:40},
-    {id:"limao", nome:"Limão", cor:"#3FA34D", min:10, receita:[{item:"Limões",valor:6},{item:"Açúcar",valor:3}], rend:40}
+    {id:"morango", nome:"Morango", cor:"#E0457B", min:10, custo:0},
+    {id:"chocolate", nome:"Chocolate", cor:"#7A4A2A", min:10, custo:0},
+    {id:"coco", nome:"Coco", cor:"#9AA7B4", min:10, custo:0},
+    {id:"uva", nome:"Uva", cor:"#7B3FB5", min:10, custo:0},
+    {id:"limao", nome:"Limão", cor:"#3FA34D", min:10, custo:0}
   ],
-  embalagem:0.15,
+  embalagem:0,
   promoOn:true,
   tiers:[{q:1,p:4},{q:2,p:7},{q:3,p:10}],
   estoque:{},        // saborId -> quantidade
@@ -473,13 +479,14 @@ const DEFAULT = () => ({
   fundos:{}          // dia -> valor
 });
 let S;
-function load(){ try{ S = JSON.parse(localStorage.getItem(KEY)||"null"); }catch(e){ S=null; } if(!S||!S.sabores) S = DEFAULT(); if(!S.aparelho) S.aparelho={id:"ap-"+uid(), nome:""}; }
+function load(){ try{ S = JSON.parse(localStorage.getItem(KEY)||"null"); }catch(e){ S=null; } if(!S||!S.sabores) S = DEFAULT(); if(!S.aparelho) S.aparelho={id:"ap-"+uid(), nome:""};
+  if(!S.revenda){ S.revenda=true; S.embalagem=0; S.sabores.forEach(x=>{ if(x.custo===undefined) x.custo=0; delete x.receita; delete x.rend; }); } }
 function save(){ try{ localStorage.setItem(KEY, JSON.stringify(S)); return true; }catch(e){ toast("Este navegador não está salvando (modo anônimo?)"); return false; } }
 load();
 
 const sab = id => S.sabores.find(s=>s.id===id);
 const stock = id => S.estoque[id]||0;
-function custoUnit(s){ if(!s) return 0; const lote=(s.receita||[]).reduce((a,r)=>a+num(r.valor),0); return (s.rend>0?lote/s.rend:0) + num(S.embalagem); }
+function custoUnit(s){ if(!s) return 0; return num(s.custo) + num(S.embalagem); }
 function custoMedio(){ const ss=S.sabores.filter(s=>!s.especial); if(!ss.length) return num(S.embalagem); return ss.reduce((a,s)=>a+custoUnit(s),0)/ss.length; }
 function tiersOk(){ return [...S.tiers].filter(t=>t.q>=1&&t.p>0).sort((a,b)=>a.q-b.q); }
 function unitPrice(){ const t=tiersOk().find(t=>t.q===1); return t?t.p:0; }
@@ -558,6 +565,7 @@ document.addEventListener("click",e=>{
   const r=e.target.closest("[data-rec]"); if(r){ $("recebido").value=r.dataset.rec; renderTroco(); }
 });
 $("recebido").addEventListener("input",renderTroco);
+$("btnEditSab").addEventListener("click",()=>document.querySelector('[data-v="ajustes"]').click());
 $("btnClear").addEventListener("click",()=>{ cart={}; $("recebido").value=""; renderFlavors(); renderCart(); });
 $("paySeg").addEventListener("click",e=>{ const b=e.target.closest("button"); if(!b) return; pay=b.dataset.pay; $("paySeg").querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",x===b)); renderCart(); });
 $("btnSell").addEventListener("click",()=>{
@@ -683,13 +691,15 @@ function renderEstoque(){
   $("movTable").innerHTML = M.length ? M.map(m=>`<tr><td>${dshort(m.ts)} ${hhmm(m.ts)}</td><td class="l">${esc((sab(m.sid)||{nome:m.sid}).nome)}</td><td>${T[m.tipo]}</td><td>${m.tipo==="ajuste"?`${m.antes} → ${m.depois}`:(m.tipo==="perda"?"−":"+")+m.qtd}</td><td class="l muted">${esc(m.obs)}</td><td><button class="btn ghost sm" data-undomov="${m.id}">desfazer</button></td></tr>`).join("")
     : '<tr><td colspan="6" class="l muted">Nenhuma movimentação. Registre a primeira entrada de picolés.</td></tr>';
 }
-$("mTipo").addEventListener("change",()=>{ $("mQtdL").textContent = $("mTipo").value==="ajuste" ? "Quantidade contada" : "Quantidade"; });
+$("mTipo").addEventListener("change",()=>{ $("mQtdL").textContent = $("mTipo").value==="ajuste" ? "Quantidade contada" : "Quantidade"; $("mPagoF").hidden = $("mTipo").value!=="entrada"; });
 $("movForm").addEventListener("submit",e=>{
   e.preventDefault(); const sid=$("mSabor").value, tipo=$("mTipo").value, q=Math.round(num($("mQtd").value));
   if(!sid || q<0 || (tipo!=="ajuste" && q===0)){ $("mMsg").textContent="Informe a quantidade."; $("mMsg").className="msg err"; return; }
   const antes=stock(sid), depois = tipo==="entrada"?antes+q : tipo==="perda"?antes-q : q;
-  S.estoque[sid]=depois; S.movs.push({id:uid(), ts:Date.now(), sid, tipo, qtd:q, obs:$("mObs").value.trim(), antes, depois}); save();
-  $("mQtd").value=""; $("mObs").value=""; $("mMsg").textContent=`${sab(sid).nome}: ${antes} → ${depois}`; $("mMsg").className="msg ok"; renderAll();
+  const pago=num($("mPago").value); let extra="";
+  if(tipo==="entrada" && pago>0 && q>0){ sab(sid).custo=Math.round(pago/q*100)/100; extra=` · custo ${brl(sab(sid).custo)} cada`; }
+  S.estoque[sid]=depois; S.movs.push({id:uid(), ts:Date.now(), sid, tipo, qtd:q, obs:$("mObs").value.trim(), antes, depois, pago:tipo==="entrada"&&pago>0?pago:undefined}); save();
+  $("mQtd").value=""; $("mObs").value=""; $("mPago").value=""; $("mMsg").textContent=`${sab(sid).nome}: ${antes} → ${depois}${extra}`; $("mMsg").className="msg ok"; renderAll();
 });
 document.addEventListener("click",e=>{ const b=e.target.closest("[data-undomov]"); if(!b) return;
   if(b.dataset.ok!=="1"){ b.dataset.ok="1"; b.textContent="confirmar?"; setTimeout(()=>{b.dataset.ok="";b.textContent="desfazer";},3000); return; }
@@ -697,19 +707,13 @@ document.addEventListener("click",e=>{ const b=e.target.closest("[data-undomov]"
   S.estoque[m.sid] = stock(m.sid) - (m.depois - m.antes); S.movs=S.movs.filter(x=>x!==m); save(); renderAll(); });
 
 /* ---------- CUSTOS ---------- */
-let cSid=null;
 function renderCustos(){
-  const sel=$("cSabor"); if(!cSid || !sab(cSid)) cSid = S.sabores[0]?.id;
-  sel.innerHTML = S.sabores.map(s=>`<option value="${esc(s.id)}">${esc(s.nome)}</option>`).join(""); if(cSid) sel.value=cSid;
-  const s=sab(cSid);
-  if(s){
-    if(!ingFocus()) $("ingList").innerHTML = (s.receita||[]).map((r,i)=>`<div class="ing"><input data-ing="${i}" data-f="item" value="${esc(r.item)}" placeholder="Ingrediente" aria-label="Ingrediente"><input data-ing="${i}" data-f="valor" type="number" inputmode="decimal" step="0.01" min="0" value="${r.valor??""}" placeholder="R$" aria-label="Valor em reais"><button type="button" data-delIng="${i}" aria-label="Remover">×</button></div>`).join("") || '<p class="foot">Nenhum ingrediente.</p>';
-    if(document.activeElement!==$("rend")) $("rend").value = s.rend||"";
-    const lote=(s.receita||[]).reduce((a,r)=>a+num(r.valor),0), cu=custoUnit(s), pv = s.especial>0 ? s.especial : unitPrice();
-    $("rLote").textContent=brl(lote); $("rUnit").textContent=brl(cu); $("rLuc").textContent=brl(pv-cu);
-    $("rLuc").previousElementSibling.textContent = s.especial>0 ? "Lucro (preço especial)" : "Lucro vendendo 1";
-  }
-  if(document.activeElement!==$("emb")) $("emb").value = S.embalagem;
+  const foc=document.activeElement;
+  if(!(foc && foc.dataset && foc.dataset.custo!==undefined)) $("custoTable").innerHTML = S.sabores.map((x,i)=>`<tr><td><span class="sw" style="background:${esc(x.cor)}"></span>${esc(x.nome)}</td><td><input data-custo="${i}" type="number" inputmode="decimal" step="0.01" min="0" value="${x.custo||""}" placeholder="0,00" aria-label="Custo de ${esc(x.nome)}" style="width:110px;text-align:right"></td></tr>`).join("");
+  $("custoAviso").hidden = !S.sabores.some(x=>!(num(x.custo)>0));
+  const cs=$("cxSabor"), cv=cs.value; cs.innerHTML = '<option value="*">Todos os sabores</option>'+S.sabores.map(x=>`<option value="${esc(x.id)}">${esc(x.nome)}</option>`).join(""); if(cv) cs.value=cv;
+  renderCx();
+  if(document.activeElement!==$("emb")) $("emb").value = S.embalagem||"";
   $("promoOn").checked = !!S.promoOn;
   if(!tierFocus()) $("tiers").innerHTML = S.tiers.map((t,i)=>`<div class="tier"><input data-tier="${i}" data-f="q" type="number" inputmode="numeric" min="1" step="1" value="${t.q}" aria-label="Quantidade"><span class="lbl">${t.q===1?"picolé":"picolés"} por R$</span><input data-tier="${i}" data-f="p" type="number" inputmode="decimal" step="0.01" min="0" value="${t.p}" aria-label="Preço"><button type="button" class="btn ghost sm" data-delTier="${i}" aria-label="Remover" ${t.q===1?"disabled":""}>×</button></div>`).join("");
   const cm=custoMedio();
@@ -720,18 +724,20 @@ function renderCustos(){
     const l1=unitPrice()-cu, ln= big? big.p/big.q-cu : l1; return `<tr><td><span class="sw" style="background:${esc(s.cor)}"></span>${esc(s.nome)}</td><td>${brl(cu)}</td><td style="color:${l1<0?"var(--crit)":""}">${brl(l1)}</td><td style="color:${ln<0?"var(--crit)":""}">${brl(ln)}</td></tr>`; }).join("");
   renderSim();
 }
-const ingFocus = () => document.activeElement && document.activeElement.dataset && document.activeElement.dataset.ing!==undefined;
 const tierFocus = () => document.activeElement && document.activeElement.dataset && document.activeElement.dataset.tier!==undefined;
 function renderSim(){ const n=Math.max(1,Math.round(num($("simQ").value))||1), pr=precoPromo(n), c=n*custoMedio();
   $("simP").textContent=brl(pr.total); $("simC").textContent=brl(c); $("simL").textContent=brl(pr.total-c); $("simL").style.color = pr.total-c<0?"var(--crit)":"";
   $("simCombo").textContent = "Combinação: "+comboTxt({combo:pr.combo,espQ:0}) + ` · custo médio de ${brl(custoMedio())} por picolé`; }
 $("simQ").addEventListener("input",renderSim);
-$("cSabor").addEventListener("change",()=>{ cSid=$("cSabor").value; $("ingList").innerHTML=""; renderCustos(); });
-$("ingList").addEventListener("input",e=>{ const i=e.target.dataset.ing; if(i===undefined) return; const s=sab(cSid); const f=e.target.dataset.f; s.receita[i][f] = f==="valor"? num(e.target.value) : e.target.value; save(); renderCustos(); });
-$("ingList").addEventListener("click",e=>{ const b=e.target.closest("[data-delIng]"); if(!b) return; sab(cSid).receita.splice(Number(b.dataset.deling),1); save(); $("ingList").innerHTML=""; renderCustos(); });
-$("addIng").addEventListener("click",()=>{ const s=sab(cSid); if(!s) return; (s.receita=s.receita||[]).push({item:"",valor:0}); save(); renderCustos(); const ins=$("ingList").querySelectorAll('input[data-f="item"]'); ins[ins.length-1]?.focus(); });
-$("rend").addEventListener("input",()=>{ const s=sab(cSid); if(!s) return; s.rend=Math.max(0,Math.round(num($("rend").value))); save(); renderCustos(); });
 $("emb").addEventListener("input",()=>{ S.embalagem=num($("emb").value); save(); renderCustos(); });
+$("custoTable").addEventListener("input",e=>{ const i=e.target.dataset.custo; if(i===undefined) return; S.sabores[i].custo=Math.max(0,num(e.target.value)); save(); renderCustos(); });
+function renderCx(){ const v=num($("cxValor").value), q=Math.round(num($("cxQtd").value)); $("cxRes").textContent = (v>0&&q>0) ? `${brl(v/q)} cada` : "Preencha valor e quantidade"; }
+$("cxValor").addEventListener("input",renderCx); $("cxQtd").addEventListener("input",renderCx);
+$("cxAplicar").addEventListener("click",()=>{ const v=num($("cxValor").value), q=Math.round(num($("cxQtd").value));
+  if(!(v>0&&q>0)){ $("cxMsg").textContent="Preencha quanto pagou e quantos vieram."; $("cxMsg").className="msg err"; return; }
+  const c=Math.round(v/q*100)/100, alvo=$("cxSabor").value;
+  S.sabores.forEach(x=>{ if(alvo==="*"||x.id===alvo) x.custo=c; }); save();
+  $("cxMsg").textContent=`Custo de ${brl(c)} aplicado${alvo==="*"?" a todos os sabores":" em "+sab(alvo).nome}.`; $("cxMsg").className="msg ok"; renderCustos(); });
 $("promoOn").addEventListener("change",()=>{ S.promoOn=$("promoOn").checked; save(); renderAll(); });
 $("tiers").addEventListener("input",e=>{ const i=e.target.dataset.tier; if(i===undefined) return; const f=e.target.dataset.f; const v=f==="q"?Math.round(num(e.target.value)):num(e.target.value);
   if(f==="q" && S.tiers[i].q===1 && v!==1){ $("tMsg").textContent="A faixa de 1 picolé é o preço normal e não pode mudar de quantidade."; $("tMsg").className="msg err"; return; }
@@ -747,17 +753,18 @@ function renderAjustes(){
   $("saborTable").innerHTML = S.sabores.map((s,i)=>`<tr>
     <td><input data-sab="${i}" data-f="nome" value="${esc(s.nome)}" aria-label="Nome do sabor" style="min-width:120px"></td>
     <td><input data-sab="${i}" data-f="cor" type="color" value="${esc(s.cor)}" aria-label="Cor" style="width:44px;padding:2px;height:36px"></td>
+    <td><input data-sab="${i}" data-f="custo" type="number" inputmode="decimal" step="0.01" min="0" value="${s.custo||""}" placeholder="0,00" aria-label="Custo de compra" style="width:90px"></td>
     <td><input data-sab="${i}" data-f="min" type="number" inputmode="numeric" min="0" value="${s.min}" aria-label="Estoque mínimo" style="width:80px"></td>
     <td><input data-sab="${i}" data-f="especial" type="number" inputmode="decimal" step="0.01" min="0" value="${s.especial||""}" placeholder="—" aria-label="Preço especial" style="width:90px"></td>
     <td><button type="button" class="btn ghost sm danger" data-delsab="${i}">remover</button></td></tr>`).join("");
 }
 $("devNome").addEventListener("input",()=>{ S.aparelho.nome=$("devNome").value.trim(); save(); renderCaixa(); });
 $("saborTable").addEventListener("input",e=>{ const i=e.target.dataset.sab; if(i===undefined) return; const f=e.target.dataset.f; let v=e.target.value;
-  if(f==="min") v=Math.max(0,Math.round(num(v))); if(f==="especial") v=num(v)>0?num(v):0; S.sabores[i][f]=v; save(); renderFlavors(); renderCart(); });
+  if(f==="min") v=Math.max(0,Math.round(num(v))); if(f==="especial") v=num(v)>0?num(v):0; if(f==="custo") v=Math.max(0,num(v)); S.sabores[i][f]=v; save(); renderFlavors(); renderCart(); });
 $("saborTable").addEventListener("click",e=>{ const b=e.target.closest("[data-delsab]"); if(!b) return;
   if(b.dataset.ok!=="1"){ b.dataset.ok="1"; b.textContent="confirmar?"; setTimeout(()=>{b.dataset.ok="";b.textContent="remover";},3000); return; }
   const s=S.sabores[Number(b.dataset.delsab)]; S.sabores.splice(Number(b.dataset.delsab),1); delete cart[s.id]; save(); renderAll(); });
-$("addSabor").addEventListener("click",()=>{ const cores=["#E0457B","#F2A31D","#2E9CCA","#3FA34D","#7B3FB5","#D64533","#1F9E8F"]; S.sabores.push({id:uid(), nome:"Novo sabor", cor:cores[S.sabores.length%cores.length], min:10, receita:[], rend:40}); save(); renderAll(); const ins=$("saborTable").querySelectorAll('input[data-f="nome"]'); const last=ins[ins.length-1]; last?.focus(); last?.select(); });
+$("addSabor").addEventListener("click",()=>{ const cores=["#E0457B","#F2A31D","#2E9CCA","#3FA34D","#7B3FB5","#D64533","#1F9E8F"]; S.sabores.push({id:uid(), nome:"Novo sabor", cor:cores[S.sabores.length%cores.length], min:10, custo:0}); save(); renderAll(); const ins=$("saborTable").querySelectorAll('input[data-f="nome"]'); const last=ins[ins.length-1]; last?.focus(); last?.select(); });
 function dl(name, text, type){ if(window.AndroidApp && AndroidApp.saveFile){ try{ AndroidApp.saveFile(name, type, text); toast("Arquivo salvo em Downloads: "+name); }catch(e){ toast("Não foi possível salvar o arquivo."); } return; } const a=document.createElement("a"); a.href=URL.createObjectURL(new Blob([text],{type})); a.download=name; document.body.appendChild(a); a.click(); setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},500); }
 $("btnExport").addEventListener("click",()=>{ dl(`picole-covafog-backup-${today()}.json`, JSON.stringify(S), "application/json"); $("bkMsg").textContent="Backup baixado."; $("bkMsg").className="msg ok"; });
 $("btnImport").addEventListener("click",()=>$("importFile").click());
@@ -837,7 +844,7 @@ $("mOk").addEventListener("click",()=>{
   // liga sabores do aluno aos do professor (pelo id, senão pelo nome; se não existir, cria)
   const mapa={};
   (d.sabores||[]).forEach(s=>{ let m=sab(s.id) || S.sabores.find(x=>x.nome.trim().toLowerCase()===String(s.nome||"").trim().toLowerCase());
-    if(!m){ m={id:uid(), nome:String(s.nome||"Sabor").slice(0,30), cor:s.cor||"#888888", min:10, receita:[], rend:40}; S.sabores.push(m); }
+    if(!m){ m={id:uid(), nome:String(s.nome||"Sabor").slice(0,30), cor:s.cor||"#888888", min:10, custo:0}; S.sabores.push(m); }
     mapa[s.id]=m.id; });
   novas.forEach(v=>{ const itens={}; let custo=0;
     Object.entries(v.itens||{}).forEach(([sid,qq])=>{ const id=mapa[sid]||sid; const n=Math.round(num(qq)); itens[id]=(itens[id]||0)+n; custo+=n*custoUnit(sab(id)); if(desconta) S.estoque[id]=stock(id)-n; });
