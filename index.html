@@ -468,6 +468,11 @@ body.aluno .tab[data-v="painel"],body.aluno .tab[data-v="custos"],body.aluno #co
         <button class="btn" type="button" id="nvConvProf">Convite de professor</button>
         <button class="btn ghost danger" type="button" id="nvSair">Desconectar este celular</button>
       </div>
+      <div id="nvInvBox" hidden style="margin-top:12px;display:grid;gap:8px">
+        <label for="nvInvTxt" id="nvInvLbl">Convite</label>
+        <textarea id="nvInvTxt" readonly style="min-height:120px"></textarea>
+        <div class="row"><a class="btn primary" id="nvInvWa" target="_blank" rel="noopener">Abrir no WhatsApp</a><button class="btn" type="button" id="nvInvCopy">Copiar convite</button></div>
+      </div>
       <p class="foot" style="margin-top:10px">O convite de aluno deixa vender e lançar perda. Painel, custos, preços e compras ficam só com quem entrou como professor.</p>
     </div>
   </div>
@@ -550,6 +555,7 @@ const DEFAULT = () => ({
 });
 let S;
 function load(){ try{ S = JSON.parse(localStorage.getItem(KEY)||"null"); }catch(e){ S=null; } if(!S||!S.sabores) S = DEFAULT(); if(!S.aparelho) S.aparelho={id:"ap-"+uid(), nome:""};
+  ["vendas","despesas","movs","lotes"].forEach(k=>{ if(!Array.isArray(S[k])) S[k]=[]; });
   if(!S.revenda){ S.revenda=true; S.embalagem=0; S.sabores.forEach(x=>{ if(x.custo===undefined) x.custo=0; delete x.receita; delete x.rend; }); } }
 function save(){ try{ localStorage.setItem(KEY, JSON.stringify(S)); if(typeof cloudSchedule==="function") cloudSchedule(); return true; }catch(e){ toast("Este navegador não está salvando (modo anônimo?)"); return false; } }
 load();
@@ -1018,8 +1024,8 @@ const clean = o => JSON.parse(JSON.stringify(o));            // tira undefined (
 // estoque na nuvem = soma das movimentações (entrada/compra/perda/contagem) menos as vendas
 function recomputeEstoque(){
   const e={}; S.sabores.forEach(s=>e[s.id]=0);
-  S.movs.forEach(m=>{ e[m.sid]=(e[m.sid]||0)+((m.depois||0)-(m.antes||0)); });
-  S.vendas.forEach(v=>{ if(v.semEstoque) return; Object.entries(v.itens||{}).forEach(([sid,q])=>e[sid]=(e[sid]||0)-q); });
+  (S.movs||[]).forEach(m=>{ e[m.sid]=(e[m.sid]||0)+((m.depois||0)-(m.antes||0)); });
+  (S.vendas||[]).forEach(v=>{ if(v.semEstoque) return; Object.entries(v.itens||{}).forEach(([sid,q])=>e[sid]=(e[sid]||0)-q); });
   S.estoque=e;
 }
 
@@ -1039,7 +1045,7 @@ async function cloudStart(){
         const k={}; const arr=[];
         snap.forEach(d=>{ const x=d.data(); x.id=d.id; arr.push(x); k[d.id]=1; });
         // mantém o que ainda não subiu (lançado offline e não enviado)
-        const pend = S[col].filter(r=>!known[col][r.id] && !k[r.id]);
+        const pend = (S[col]||[]).filter(r=>!known[col][r.id] && !k[r.id]);
         known[col]=k; saveKnown();
         S[col]=arr.concat(pend);
         afterRemote();
@@ -1065,13 +1071,13 @@ async function cloudPush(){
   try{
     const ops=[];
     COLS.forEach(col=>{
-      const ids={}; S[col].forEach(r=>{ ids[r.id]=1; if(!known[col][r.id]){ const {id,...rest}=r; ops.push(["set",fsEsc.collection(col).doc(id),clean(rest)]); known[col][r.id]=1; } });
+      const ids={}; (S[col]=S[col]||[]).forEach(r=>{ ids[r.id]=1; if(!known[col][r.id]){ const {id,...rest}=r; ops.push(["set",fsEsc.collection(col).doc(id),clean(rest)]); known[col][r.id]=1; } });
       Object.keys(known[col]).forEach(id=>{ if(!ids[id]){ ops.push(["del",fsEsc.collection(col).doc(id)]); delete known[col][id]; } });
     });
     if(isProf()){ const c=JSON.stringify(clean(cfgOf())); if(c!==known.config){ ops.push(["set",fsEsc.collection("config").doc("geral"),clean(cfgOf())]); known.config=c; } }
     saveKnown();
-    for(let i=0;i<ops.length;i+=400){ const b=db.batch(); ops.slice(i,i+400).forEach(o=> o[0]==="set" ? b.set(o[1],o[2]) : b.delete(o[1])); b.commit().catch(e=>{ console.warn(e); setCloud("erro"); }); }
-  }finally{ pushing=false; }
+    for(let i=0;i<ops.length;i+=400){ const b=db.batch(); ops.slice(i,i+400).forEach(o=> o[0]==="set" ? b.set(o[1],o[2]) : b.delete(o[1])); b.commit().then(()=>{ if(cloudState!=="online") setCloud("online"); }).catch(e=>{ console.warn(e); setCloud("erro"); }); }
+  }catch(e){ console.warn(e); setCloud("erro"); }finally{ pushing=false; }
 }
 // primeira conexão: garante que o estoque que já existia no celular vira "saldo inicial" na nuvem
 function seedSaldoInicial(){
@@ -1120,12 +1126,15 @@ function convidar(papel){
   const txt = papel==="aluno"
     ? `🍦 *Picolé COVAFOG* — entrar no caixa da escola\n\n1) Instale ou abra o app\n2) Vá em *Ajustes* → escreva seu nome\n3) Em *Nuvem*, toque em *Entrar com convite* e cole este código:\n\n${code}\n\nPelo navegador é só abrir: ${link}`
     : `Convite de PROFESSOR do Picolé COVAFOG (acesso completo). Não envie para alunos.\n\n${code}\n\n${link}`;
+  $("nvInvBox").hidden=false; $("nvInvLbl").textContent = papel==="aluno" ? "Convite para os alunos" : "Convite de professor (não mande para alunos)";
+  $("nvInvTxt").value=txt; $("nvInvWa").href="https://api.whatsapp.com/send?text="+encodeURIComponent(txt);
   if(window.AndroidApp && AndroidApp.shareText){ try{ AndroidApp.shareText(txt); return; }catch(e){} }
-  if(navigator.share){ navigator.share({text:txt}).catch(()=>{}); return; }
-  if(navigator.clipboard) navigator.clipboard.writeText(txt).then(()=>toast("Convite copiado. Cole no WhatsApp."),()=>{ prompt("Copie o convite:",txt); });
+  $("nvInvBox").scrollIntoView({behavior:"smooth",block:"center"});
 }
 $("nvConvAluno").addEventListener("click",()=>convidar("aluno"));
 $("nvConvProf").addEventListener("click",()=>convidar("professor"));
+$("nvInvCopy").addEventListener("click",()=>{ const t=$("nvInvTxt"); const done=()=>toast("Convite copiado. Cole no WhatsApp."); if(navigator.clipboard) navigator.clipboard.writeText(t.value).then(done,()=>{ t.select(); document.execCommand("copy"); done(); }); else { t.select(); document.execCommand("copy"); done(); } });
+$("nvInvWa").addEventListener("click",e=>{ if(window.AndroidApp && AndroidApp.shareText){ e.preventDefault(); AndroidApp.shareText($("nvInvTxt").value); } });
 $("nvCopiar").addEventListener("click",()=>{ const code=makeInvite("aluno"); if(navigator.clipboard) navigator.clipboard.writeText(code).then(()=>toast("Código do convite copiado."),()=>{}); });
 $("nvSair").addEventListener("click",e=>{
   const b=e.currentTarget; if(b.dataset.ok!=="1"){ b.dataset.ok="1"; b.textContent="Toque de novo para desconectar"; setTimeout(()=>{b.dataset.ok="";b.textContent="Desconectar este celular";},4000); return; }
