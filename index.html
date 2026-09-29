@@ -178,6 +178,13 @@ details summary{cursor:pointer;font-weight:600;color:var(--ink2)}
 .sync .btn.wa{background:#1FAF5A;border-color:#1FAF5A;color:#fff;font-weight:600}
 .sync .btn.wa:hover{filter:brightness(1.05)}
 .who{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--muted)}
+body.aluno .tab[data-v="painel"],body.aluno .tab[data-v="custos"],body.aluno #compraPanel,body.aluno #sabPanel,body.aluno #bkPanel,body.aluno #btnEditSab,body.aluno #lotesPanel{display:none!important}
+@media (max-width:620px){body.aluno .tabs{grid-template-columns:repeat(3,1fr)}}
+.nuvem textarea{font:inherit;font-family:ui-monospace,Menlo,monospace;font-size:12.5px;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:9px 11px;width:100%;min-height:92px;resize:vertical}
+.nv-opts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+@media (max-width:760px){.nv-opts{grid-template-columns:1fr}}
+.nv-opt{border:1px solid var(--line);border-radius:10px;padding:14px;display:grid;gap:10px;align-content:start;background:var(--surface2)}
+.hdrcloud{font-size:11.5px;color:var(--navyMuted);display:block;margin-top:2px}
 [hidden]{display:none!important}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
@@ -191,7 +198,7 @@ details summary{cursor:pointer;font-weight:600;color:var(--ink2)}
         <img src="icon-192.png" alt="">
         <div><h1>Picolé <span>COVAFOG</span></h1><p>Caixa e estoque da escola</p></div>
       </div>
-      <div class="today"><b id="hdrTotal">R$ 0,00</b>vendido hoje</div>
+      <div class="today"><b id="hdrTotal">R$ 0,00</b>vendido hoje<span class="hdrcloud" id="hdrCloud" hidden></span></div>
     </div>
     <nav class="tabs" role="tablist">
       <button class="tab" role="tab" data-v="vender" aria-selected="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h12l1 5H5z"/><path d="M5 7v13a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7"/><path d="M9 12h6"/></svg>Vender</button>
@@ -223,7 +230,7 @@ details summary{cursor:pointer;font-weight:600;color:var(--ink2)}
       </div>
       <div id="cashBox" class="field">
         <label for="recebido">Valor recebido</label>
-        <input id="recebido" type="number" inputmode="decimal" step="0.01" min="0" placeholder="0,00">
+        <input id="recebido" type="number" inputmode="decimal" step="any" min="0" placeholder="0,00">
         <div class="quick" id="quick"></div>
         <div class="troco" id="troco" hidden></div>
       </div>
@@ -231,7 +238,7 @@ details summary{cursor:pointer;font-weight:600;color:var(--ink2)}
     </div>
   </div>
 
-  <div class="panel sync">
+  <div class="panel sync" id="syncPanel">
     <div class="panel-h" style="margin:0"><h2><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px;color:var(--blue)"><path d="M21 12a9 9 0 0 1-15.5 6.2L3 21l.8-4.6A9 9 0 1 1 21 12z"/></svg>Enviar e receber vendas</h2><span class="foot" id="devName"></span></div>
     <p class="foot">O aluno vende no celular dele e, no fim do dia, envia as vendas pelo WhatsApp. O professor toca no arquivo recebido, abre com o Picolé COVAFOG e as vendas entram no painel dele. Pode enviar mais de uma vez: o que já entrou não é somado de novo.</p>
     <div class="row">
@@ -246,7 +253,7 @@ details summary{cursor:pointer;font-weight:600;color:var(--ink2)}
     <div class="panel">
       <div class="panel-h"><h2>Caixa de hoje <span class="foot" style="font-weight:400">(deste aparelho)</span></h2><span class="foot" id="cxDate"></span></div>
       <div class="cashbox">
-        <div class="field" style="margin-bottom:6px"><label for="fundo">Fundo de troco (dinheiro que começou na caixa)</label><input id="fundo" type="number" inputmode="decimal" step="0.01" min="0" placeholder="0,00"></div>
+        <div class="field" style="margin-bottom:6px"><label for="fundo">Fundo de troco (dinheiro que começou na caixa)</label><input id="fundo" type="number" inputmode="decimal" step="any" min="0" placeholder="0,00"></div>
         <div class="cashrow"><span>Vendas em dinheiro</span><span id="cxDin">R$ 0,00</span></div>
         <div class="cashrow"><span>Vendas no Pix</span><span id="cxPix">R$ 0,00</span></div>
         <div class="cashrow"><span>Vendas no cartão</span><span id="cxCar">R$ 0,00</span></div>
@@ -258,7 +265,7 @@ details summary{cursor:pointer;font-weight:600;color:var(--ink2)}
       <div class="panel-h"><h2>Lançar despesa</h2></div>
       <form id="despForm" class="fields" autocomplete="off">
         <div class="field" style="grid-column:1/-1"><label for="dDesc">Descrição</label><input id="dDesc" type="text" maxlength="60" placeholder="ex.: gelo, saquinhos, gás" required></div>
-        <div class="field"><label for="dVal">Valor (R$)</label><input id="dVal" type="number" inputmode="decimal" step="0.01" min="0.01" required></div>
+        <div class="field"><label for="dVal">Valor (R$)</label><input id="dVal" type="number" inputmode="decimal" step="any" min="0.01" required></div>
         <div class="field"><label for="dCaixa">Pago com</label><select id="dCaixa"><option value="1">Dinheiro da caixa</option><option value="0">Outro (Pix, bolso)</option></select></div>
         <div class="row" style="grid-column:1/-1"><button class="btn" type="submit">Lançar despesa</button><p class="msg" id="dMsg"></p></div>
       </form>
@@ -321,8 +328,8 @@ details summary{cursor:pointer;font-weight:600;color:var(--ink2)}
     <div class="grid2" style="align-items:start">
       <div>
         <div class="fields">
-          <div class="field"><label for="lPreco">Preço de cada picolé (R$)</label><input id="lPreco" type="number" inputmode="decimal" step="0.01" min="0" placeholder="ex.: 1,50"></div>
-          <div class="field"><label for="lFrete">Frete desta compra (R$)</label><input id="lFrete" type="number" inputmode="decimal" step="0.01" min="0" placeholder="ex.: 5,00"></div>
+          <div class="field"><label for="lPreco">Preço de cada picolé (R$)</label><input id="lPreco" type="number" inputmode="decimal" step="any" min="0" placeholder="ex.: 1,50"></div>
+          <div class="field"><label for="lFrete">Frete desta compra (R$)</label><input id="lFrete" type="number" inputmode="decimal" step="any" min="0" placeholder="ex.: 5,00"></div>
         </div>
         <div class="tablewrap" style="margin-top:12px"><table>
           <thead><tr><th>Sabor</th><th>Quantidade</th><th>Preço (se diferente)</th></tr></thead>
@@ -362,7 +369,7 @@ details summary{cursor:pointer;font-weight:600;color:var(--ink2)}
       </form>
     </div>
   </div>
-  <div class="panel">
+  <div class="panel" id="lotesPanel">
     <div class="panel-h"><h2>Compras (lotes)</h2><span class="foot" id="lotesInfo"></span></div>
     <div class="tablewrap"><table>
       <thead><tr><th>Data</th><th class="l">Sabores</th><th>Picolés</th><th>Frete</th><th>Total</th><th>Custo cada</th><th></th></tr></thead>
@@ -390,7 +397,7 @@ details summary{cursor:pointer;font-weight:600;color:var(--ink2)}
       </table></div>
       <p class="foot" style="margin-top:12px">O custo é atualizado sozinho quando você registra uma compra (preço + frete dividido pelos picolés). Se misturar lotes com preços diferentes no freezer, o app usa a média. Dá para corrigir à mão aqui.</p>
       <div class="row" style="margin-top:10px"><button class="btn sm blue" type="button" id="goCompra">Registrar nova compra</button></div>
-      <div class="field" style="margin-top:14px"><label for="emb">Custo extra por picolé, todos os sabores (R$) · ex.: saquinho, guardanapo</label><input id="emb" type="number" inputmode="decimal" min="0" step="0.01" placeholder="0,00"></div>
+      <div class="field" style="margin-top:14px"><label for="emb">Custo extra por picolé, todos os sabores (R$) · ex.: saquinho, guardanapo</label><input id="emb" type="number" inputmode="decimal" min="0" step="any" placeholder="0,00"></div>
     </div>
     <div class="panel">
       <div class="panel-h"><h2>Preço e promoção</h2><label class="row" style="gap:8px;font-size:14px"><input type="checkbox" id="promoOn" style="width:auto"> Promoção ativa</label></div>
@@ -428,8 +435,44 @@ details summary{cursor:pointer;font-weight:600;color:var(--ink2)}
 
 <!-- ============ AJUSTES ============ -->
 <section class="view" id="v-ajustes" hidden>
+  <div class="panel nuvem">
+    <div class="panel-h"><h2><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px;color:var(--blue)"><path d="M17.5 19a4.5 4.5 0 0 0 .5-8.97A6 6 0 0 0 6.34 9.5 4 4 0 0 0 6.5 19z"/></svg>Nuvem: todos os celulares juntos</h2><span class="pill" id="nvStatus">Desconectado</span></div>
+    <div id="nvOff">
+      <p class="foot" style="margin-bottom:12px">Conectando na nuvem, cada venda, compra e perda lançada em qualquer celular aparece na hora em todos os outros. Sem internet, o celular guarda e envia quando a conexão voltar.</p>
+      <div class="nv-opts">
+        <div class="nv-opt">
+          <h3>Sou o professor (primeira vez)</h3>
+          <label for="nvCfg">Cole a configuração do Firebase (Console do Firebase → Configurações do projeto → Seus apps → SDK)</label>
+          <textarea id="nvCfg" spellcheck="false" placeholder="const firebaseConfig = {&#10;  apiKey: &quot;...&quot;,&#10;  authDomain: &quot;...&quot;,&#10;  projectId: &quot;picole-covafog&quot;,&#10;  ...&#10;};"></textarea>
+          <button class="btn primary" type="button" id="nvCriar">Criar escola na nuvem</button>
+          <p class="foot">O que já está lançado neste celular vai junto para a nuvem.</p>
+        </div>
+        <div class="nv-opt">
+          <h3>Recebi um convite</h3>
+          <label for="nvConvite">Cole o convite que o professor mandou</label>
+          <textarea id="nvConvite" spellcheck="false" placeholder="PICOLE1.xxxxxxxx"></textarea>
+          <button class="btn blue" type="button" id="nvEntrar">Entrar com convite</button>
+          <p class="foot">Escreva seu nome no campo "Este aparelho", mais abaixo, antes de entrar.</p>
+        </div>
+      </div>
+      <p class="msg" id="nvMsg" style="margin-top:10px"></p>
+    </div>
+    <div id="nvOn" hidden>
+      <div class="cashbox" style="margin-bottom:12px">
+        <div class="cashrow"><span>Este celular é</span><span id="nvPapel"></span></div>
+        <div class="cashrow"><span>Código da escola</span><span id="nvEscola" style="font-family:ui-monospace,monospace;font-size:12.5px"></span></div>
+      </div>
+      <div class="row">
+        <button class="btn primary" type="button" id="nvConvAluno">Convidar alunos (WhatsApp)</button>
+        <button class="btn" type="button" id="nvCopiar" hidden>Copiar código</button>
+        <button class="btn" type="button" id="nvConvProf">Convite de professor</button>
+        <button class="btn ghost danger" type="button" id="nvSair">Desconectar este celular</button>
+      </div>
+      <p class="foot" style="margin-top:10px">O convite de aluno deixa vender e lançar perda. Painel, custos, preços e compras ficam só com quem entrou como professor.</p>
+    </div>
+  </div>
   <div class="grid2e">
-    <div class="panel">
+    <div class="panel" id="sabPanel">
       <div class="panel-h"><h2>Sabores</h2><button class="btn sm" type="button" id="addSabor">+ Sabor</button></div>
       <div class="tablewrap"><table>
         <thead><tr><th>Sabor</th><th>Cor</th><th>Custo (R$)</th><th>Avisar abaixo de</th><th>Preço especial</th><th></th></tr></thead>
@@ -439,7 +482,8 @@ details summary{cursor:pointer;font-weight:600;color:var(--ink2)}
     </div>
     <div class="panel">
       <div class="panel-h"><h2>Este aparelho</h2></div>
-      <div class="field" style="margin-bottom:18px"><label for="devNome">Nome de quem vende neste celular</label><input id="devNome" type="text" maxlength="30" placeholder="ex.: João 2ºA, Prof. Breno"><span class="foot">Aparece para o professor nas vendas enviadas pelo WhatsApp.</span></div>
+      <div class="field" style="margin-bottom:18px"><label for="devNome">Nome de quem vende neste celular</label><input id="devNome" type="text" maxlength="30" placeholder="ex.: João 2ºA, Prof. Breno"><span class="foot">Aparece para o professor em cada venda.</span></div>
+      <div id="bkPanel">
       <div class="panel-h"><h2>Backup e relatórios</h2></div>
       <p class="foot" style="margin-bottom:12px">Os dados ficam só neste aparelho. Baixe um backup no fim do dia; para usar em outro celular, importe o arquivo lá.</p>
       <div class="row">
@@ -454,6 +498,7 @@ details summary{cursor:pointer;font-weight:600;color:var(--ink2)}
         <p class="foot" style="margin:8px 0">Apaga vendas, despesas e movimentações. Sabores, custos e preços continuam.</p>
         <button class="btn danger" type="button" id="btnWipe">Apagar vendas e estoque</button>
       </details>
+      </div>
     </div>
   </div>
 </section>
@@ -506,7 +551,7 @@ const DEFAULT = () => ({
 let S;
 function load(){ try{ S = JSON.parse(localStorage.getItem(KEY)||"null"); }catch(e){ S=null; } if(!S||!S.sabores) S = DEFAULT(); if(!S.aparelho) S.aparelho={id:"ap-"+uid(), nome:""};
   if(!S.revenda){ S.revenda=true; S.embalagem=0; S.sabores.forEach(x=>{ if(x.custo===undefined) x.custo=0; delete x.receita; delete x.rend; }); } }
-function save(){ try{ localStorage.setItem(KEY, JSON.stringify(S)); return true; }catch(e){ toast("Este navegador não está salvando (modo anônimo?)"); return false; } }
+function save(){ try{ localStorage.setItem(KEY, JSON.stringify(S)); if(typeof cloudSchedule==="function") cloudSchedule(); return true; }catch(e){ toast("Este navegador não está salvando (modo anônimo?)"); return false; } }
 load();
 
 const sab = id => S.sabores.find(s=>s.id===id);
@@ -745,7 +790,7 @@ function loteCalc(){
 function renderLote(){
   const f=document.activeElement;
   if(!(f && f.dataset && (f.dataset.lq!==undefined || f.dataset.lp!==undefined)))
-    $("lItens").innerHTML = S.sabores.map(s=>`<tr><td><span class="sw" style="background:${esc(s.cor)}"></span>${esc(s.nome)}</td><td><input data-lq="${esc(s.id)}" type="number" inputmode="numeric" step="1" min="0" value="${lQ[s.id]||""}" placeholder="0" aria-label="Quantidade de ${esc(s.nome)}" style="width:80px;text-align:right"></td><td><input data-lp="${esc(s.id)}" type="number" inputmode="decimal" step="0.01" min="0" value="${lP[s.id]??""}" placeholder="${$("lPreco").value?brl(num($("lPreco").value)).replace("R$ ",""):"igual"}" aria-label="Preço de ${esc(s.nome)}" style="width:90px;text-align:right"></td></tr>`).join("");
+    $("lItens").innerHTML = S.sabores.map(s=>`<tr><td><span class="sw" style="background:${esc(s.cor)}"></span>${esc(s.nome)}</td><td><input data-lq="${esc(s.id)}" type="number" inputmode="numeric" step="1" min="0" value="${lQ[s.id]||""}" placeholder="0" aria-label="Quantidade de ${esc(s.nome)}" style="width:80px;text-align:right"></td><td><input data-lp="${esc(s.id)}" type="number" inputmode="decimal" step="any" min="0" value="${lP[s.id]??""}" placeholder="${$("lPreco").value?brl(num($("lPreco").value)).replace("R$ ",""):"igual"}" aria-label="Preço de ${esc(s.nome)}" style="width:90px;text-align:right"></td></tr>`).join("");
   const c=loteCalc();
   $("lQtd").textContent=c.qtd; $("lValor").textContent=brl(c.valor); $("lFreteV").textContent=brl(c.frete); $("lFretePor").textContent=brl(c.fretePor); $("lTotal").textContent=brl(c.total); $("lCusto").textContent=brl(c.custo);
   $("lSalvar").disabled = !c.qtd;
@@ -755,7 +800,7 @@ function renderLote(){
     : '<tr><td colspan="7" class="l muted">Nenhuma compra registrada ainda.</td></tr>';
 }
 $("lPreco").addEventListener("input",()=>{ try{ localStorage.setItem("picole.ultimoPreco",$("lPreco").value); }catch(e){} renderLote(); });
-$("lFrete").addEventListener("input",renderLote);
+$("lFrete").addEventListener("input",()=>{ try{ localStorage.setItem("picole.ultimoFrete",$("lFrete").value); }catch(e){} renderLote(); });
 $("lItens").addEventListener("input",e=>{ const t=e.target; if(t.dataset.lq!==undefined) lQ[t.dataset.lq]=t.value; else if(t.dataset.lp!==undefined) lP[t.dataset.lp]=t.value; renderLote(); });
 $("lSalvar").addEventListener("click",()=>{
   const c=loteCalc();
@@ -775,7 +820,7 @@ $("lSalvar").addEventListener("click",()=>{
   const lote={id, ts, itens, qtd:c.qtd, valor:Math.round(c.valor*100)/100, frete:c.frete, total:Math.round(c.total*100)/100, custo:Math.round(c.custo*100)/100};
   if($("lCaixa").checked){ const did=uid(); S.despesas.push({id:did, dev:S.aparelho.id, vend:S.aparelho.nome||"", ts, desc:`Compra de ${c.qtd} picolés (com frete)`, valor:lote.total, caixa:true, compra:true}); lote.despesa=did; }
   (S.lotes=S.lotes||[]).push(lote); save();
-  lQ={}; lP={}; $("lFrete").value=""; $("lCaixa").checked=false; $("lItens").innerHTML="";
+  lQ={}; lP={}; $("lCaixa").checked=false; $("lItens").innerHTML="";
   $("lMsg").textContent=`Compra registrada: ${c.qtd} picolés a ${brl(lote.custo)} cada (já com frete).`; $("lMsg").className="msg ok";
   renderAll();
 });
@@ -789,11 +834,11 @@ document.addEventListener("click",e=>{ const b=e.target.closest("[data-dellote]"
 /* ---------- CUSTOS ---------- */
 function renderCustos(){
   const foc=document.activeElement;
-  if(!(foc && foc.dataset && foc.dataset.custo!==undefined)) $("custoTable").innerHTML = S.sabores.map((x,i)=>`<tr><td><span class="sw" style="background:${esc(x.cor)}"></span>${esc(x.nome)}</td><td><input data-custo="${i}" type="number" inputmode="decimal" step="0.01" min="0" value="${x.custo||""}" placeholder="0,00" aria-label="Custo de ${esc(x.nome)}" style="width:110px;text-align:right"></td></tr>`).join("");
+  if(!(foc && foc.dataset && foc.dataset.custo!==undefined)) $("custoTable").innerHTML = S.sabores.map((x,i)=>`<tr><td><span class="sw" style="background:${esc(x.cor)}"></span>${esc(x.nome)}</td><td><input data-custo="${i}" type="number" inputmode="decimal" step="any" min="0" value="${x.custo||""}" placeholder="0,00" aria-label="Custo de ${esc(x.nome)}" style="width:110px;text-align:right"></td></tr>`).join("");
   $("custoAviso").hidden = !S.sabores.some(x=>!(num(x.custo)>0));
   if(document.activeElement!==$("emb")) $("emb").value = S.embalagem||"";
   $("promoOn").checked = !!S.promoOn;
-  if(!tierFocus()) $("tiers").innerHTML = S.tiers.map((t,i)=>`<div class="tier"><input data-tier="${i}" data-f="q" type="number" inputmode="numeric" min="1" step="1" value="${t.q}" aria-label="Quantidade"><span class="lbl">${t.q===1?"picolé":"picolés"} por R$</span><input data-tier="${i}" data-f="p" type="number" inputmode="decimal" step="0.01" min="0" value="${t.p}" aria-label="Preço"><button type="button" class="btn ghost sm" data-delTier="${i}" aria-label="Remover" ${t.q===1?"disabled":""}>×</button></div>`).join("");
+  if(!tierFocus()) $("tiers").innerHTML = S.tiers.map((t,i)=>`<div class="tier"><input data-tier="${i}" data-f="q" type="number" inputmode="numeric" min="1" step="1" value="${t.q}" aria-label="Quantidade"><span class="lbl">${t.q===1?"picolé":"picolés"} por R$</span><input data-tier="${i}" data-f="p" type="number" inputmode="decimal" step="any" min="0" value="${t.p}" aria-label="Preço"><button type="button" class="btn ghost sm" data-delTier="${i}" aria-label="Remover" ${t.q===1?"disabled":""}>×</button></div>`).join("");
   const cm=custoMedio();
   $("tierTable").innerHTML = tiersOk().map(t=>{ const each=t.p/t.q, l=t.p-t.q*cm; return `<tr><td>${t.q}</td><td>${brl(t.p)}</td><td>${brl(each)}</td><td>${brl(t.q*cm)}</td><td class="money" style="color:${l<0?"var(--crit)":"var(--good)"}">${brl(l)}</td><td>${pct(l/t.p*100)}</td></tr>`; }).join("");
   const ts=tiersOk(), big=ts[ts.length-1];
@@ -825,9 +870,9 @@ function renderAjustes(){
   $("saborTable").innerHTML = S.sabores.map((s,i)=>`<tr>
     <td><input data-sab="${i}" data-f="nome" value="${esc(s.nome)}" aria-label="Nome do sabor" style="min-width:120px"></td>
     <td><input data-sab="${i}" data-f="cor" type="color" value="${esc(s.cor)}" aria-label="Cor" style="width:44px;padding:2px;height:36px"></td>
-    <td><input data-sab="${i}" data-f="custo" type="number" inputmode="decimal" step="0.01" min="0" value="${s.custo||""}" placeholder="0,00" aria-label="Custo de compra" style="width:90px"></td>
+    <td><input data-sab="${i}" data-f="custo" type="number" inputmode="decimal" step="any" min="0" value="${s.custo||""}" placeholder="0,00" aria-label="Custo de compra" style="width:90px"></td>
     <td><input data-sab="${i}" data-f="min" type="number" inputmode="numeric" min="0" value="${s.min}" aria-label="Estoque mínimo" style="width:80px"></td>
-    <td><input data-sab="${i}" data-f="especial" type="number" inputmode="decimal" step="0.01" min="0" value="${s.especial||""}" placeholder="—" aria-label="Preço especial" style="width:90px"></td>
+    <td><input data-sab="${i}" data-f="especial" type="number" inputmode="decimal" step="any" min="0" value="${s.especial||""}" placeholder="—" aria-label="Preço especial" style="width:90px"></td>
     <td><button type="button" class="btn ghost sm danger" data-delsab="${i}">remover</button></td></tr>`).join("");
 }
 $("devNome").addEventListener("input",()=>{ S.aparelho.nome=$("devNome").value.trim(); save(); renderCaixa(); });
@@ -885,7 +930,7 @@ $("btnReceive").addEventListener("click",()=>$("receiveFile").click());
 $("receiveFile").addEventListener("change",async()=>{ const f=$("receiveFile").files[0]; $("receiveFile").value=""; if(f) receberAtualizacao(await f.text()); });
 
 let pendente=null;
-try{ const up=localStorage.getItem("picole.ultimoPreco"); if(up) $("lPreco").value=up; }catch(e){}
+try{ const up=localStorage.getItem("picole.ultimoPreco"); if(up) $("lPreco").value=up; const uf=localStorage.getItem("picole.ultimoFrete"); $("lFrete").value = uf!==null ? uf : "5"; }catch(e){}
 function receberAtualizacao(text){
   let d; try{ d=JSON.parse(text); }catch(e){ toast("Esse arquivo não é uma atualização do Picolé COVAFOG."); return; }
   if(d && Array.isArray(d.sabores) && Array.isArray(d.vendas) && d.tipo!=="atualizacao"){ toast("Esse arquivo é um backup completo. Use Ajustes → Importar backup."); return; }
@@ -921,12 +966,179 @@ $("mOk").addEventListener("click",()=>{
     mapa[s.id]=m.id; });
   novas.forEach(v=>{ const itens={}; let custo=0;
     Object.entries(v.itens||{}).forEach(([sid,qq])=>{ const id=mapa[sid]||sid; const n=Math.round(num(qq)); itens[id]=(itens[id]||0)+n; custo+=n*custoUnit(sab(id)); if(desconta) S.estoque[id]=stock(id)-n; });
-    S.vendas.push({id:v.id, dev, vend:nome, ts:num(v.ts)||Date.now(), itens, qtd:Math.round(num(v.qtd)), total:num(v.total), custo:Math.round(custo*100)/100, pag:["dinheiro","pix","cartao"].includes(v.pag)?v.pag:"dinheiro", recebido:null}); });
+    S.vendas.push({id:v.id, dev, vend:nome, ts:num(v.ts)||Date.now(), itens, qtd:Math.round(num(v.qtd)), total:num(v.total), custo:Math.round(custo*100)/100, pag:["dinheiro","pix","cartao"].includes(v.pag)?v.pag:"dinheiro", recebido:null, semEstoque:!desconta||undefined}); });
   novasD.forEach(x=>S.despesas.push({id:x.id, dev, vend:nome, ts:num(x.ts)||Date.now(), desc:String(x.desc||"").slice(0,60), valor:num(x.valor), caixa:!!x.caixa}));
   save(); $("modal").hidden=true; pendente=null;
   toast(`${novas.length} venda${novas.length===1?"":"s"} de ${nome} importada${novas.length===1?"":"s"}.`);
   document.querySelector('[data-v="painel"]').click();
 });
+
+
+/* ---------- NUVEM (Firebase): todos os celulares da escola juntos ---------- */
+// Estratégia: o app continua trabalhando no estado local S (funciona sem internet).
+// A cada mudança, compara S com o que já está na nuvem ("known") e envia só a diferença.
+// Os listeners da nuvem trazem o que os outros celulares lançaram e reconstroem S.
+const CKEY = "picole.nuvem.v1";
+const FBV = "10.12.2";
+const COLS = ["vendas","despesas","movs","lotes"];
+let N = null;            // {cfg, escola, papel}
+let known = {vendas:{},despesas:{},movs:{},lotes:{}, config:null};
+let fb = null, db = null, fsEsc = null, unsub = [], cloudState = "off", pushT = null, pushing = false;
+try{ N = JSON.parse(localStorage.getItem(CKEY)||"null"); }catch(e){ N=null; }
+try{ const k = JSON.parse(localStorage.getItem(CKEY+".known")||"null"); if(k) known = Object.assign(known,k); }catch(e){}
+const isProf = () => !N || N.papel === "professor";
+function saveKnown(){ try{ localStorage.setItem(CKEY+".known", JSON.stringify(known)); }catch(e){} }
+function setCloud(st){ cloudState = st; renderNuvemStatus(); }
+
+function loadScript(src){ return new Promise((ok,fail)=>{ const s=document.createElement("script"); s.src=src; s.onload=ok; s.onerror=()=>fail(new Error("load")); document.head.appendChild(s); }); }
+async function loadFirebase(){
+  if(window.firebase && firebase.firestore) return;
+  const base = `https://www.gstatic.com/firebasejs/${FBV}/`;
+  await loadScript(base+"firebase-app-compat.js");
+  await loadScript(base+"firebase-auth-compat.js");
+  await loadScript(base+"firebase-firestore-compat.js");
+}
+function parseConfig(txt){
+  const cfg={}; ["apiKey","authDomain","projectId","storageBucket","messagingSenderId","appId"].forEach(k=>{
+    const m = String(txt).match(new RegExp(k+"\\s*[:=]\\s*[\"']([^\"']+)[\"']")); if(m) cfg[k]=m[1]; });
+  return cfg.apiKey && cfg.projectId && cfg.appId ? cfg : null;
+}
+const b64e = o => btoa(unescape(encodeURIComponent(JSON.stringify(o)))).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
+const b64d = s => JSON.parse(decodeURIComponent(escape(atob(s.replace(/-/g,"+").replace(/_/g,"/")))));
+function makeInvite(papel){ return "PICOLE1." + b64e({c:N.cfg, e:N.escola, r:papel}); }
+function readInvite(txt){
+  const m = String(txt).match(/PICOLE1\.([A-Za-z0-9_\-]+)/); if(!m) return null;
+  try{ const o=b64d(m[1]); return (o && o.c && o.e) ? {cfg:o.c, escola:o.e, papel:o.r==="professor"?"professor":"aluno"} : null; }catch(e){ return null; }
+}
+function newSchoolCode(){ const a=new Uint8Array(12); (crypto||window.msCrypto).getRandomValues(a); return "cvf-"+[...a].map(x=>x.toString(36).padStart(2,"0")).join("").slice(0,18); }
+
+const cfgOf = () => ({sabores:S.sabores, tiers:S.tiers, promoOn:S.promoOn, embalagem:S.embalagem});
+const clean = o => JSON.parse(JSON.stringify(o));            // tira undefined (o Firestore não aceita)
+
+// estoque na nuvem = soma das movimentações (entrada/compra/perda/contagem) menos as vendas
+function recomputeEstoque(){
+  const e={}; S.sabores.forEach(s=>e[s.id]=0);
+  S.movs.forEach(m=>{ e[m.sid]=(e[m.sid]||0)+((m.depois||0)-(m.antes||0)); });
+  S.vendas.forEach(v=>{ if(v.semEstoque) return; Object.entries(v.itens||{}).forEach(([sid,q])=>e[sid]=(e[sid]||0)-q); });
+  S.estoque=e;
+}
+
+async function cloudStart(){
+  if(!N) { setCloud("off"); return; }
+  setCloud("conectando");
+  try{
+    await loadFirebase();
+    fb = firebase.apps.length ? firebase.app() : firebase.initializeApp(N.cfg);
+    db = firebase.firestore();
+    try{ await db.enablePersistence({synchronizeTabs:true}); }catch(e){}
+    if(!firebase.auth().currentUser) await firebase.auth().signInAnonymously();
+    fsEsc = db.collection("escolas").doc(N.escola);
+    unsub.forEach(u=>u()); unsub=[];
+    COLS.forEach(col=>{
+      unsub.push(fsEsc.collection(col).onSnapshot(snap=>{
+        const k={}; const arr=[];
+        snap.forEach(d=>{ const x=d.data(); x.id=d.id; arr.push(x); k[d.id]=1; });
+        // mantém o que ainda não subiu (lançado offline e não enviado)
+        const pend = S[col].filter(r=>!known[col][r.id] && !k[r.id]);
+        known[col]=k; saveKnown();
+        S[col]=arr.concat(pend);
+        afterRemote();
+      }, err=>{ setCloud("erro"); console.warn(err); }));
+    });
+    unsub.push(fsEsc.collection("config").doc("geral").onSnapshot(d=>{
+      if(d.exists){ const c=d.data(); known.config=JSON.stringify(clean(c)); saveKnown();
+        if(!isProf() || JSON.stringify(clean(cfgOf()))===known.config || !pushT){ Object.assign(S,c); } }
+      afterRemote();
+    }, err=>{ setCloud("erro"); console.warn(err); }));
+    setCloud("online");
+    cloudPush();
+  }catch(e){ console.warn(e); setCloud(e && e.message==="load" ? "sem internet" : "erro"); }
+}
+let remT=null;
+function afterRemote(){
+  clearTimeout(remT); remT=setTimeout(()=>{ recomputeEstoque(); try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){} renderAll(); if(cloudState!=="online") setCloud("online"); },120);
+}
+// envia para a nuvem o que mudou localmente
+function cloudSchedule(){ if(!N) return; clearTimeout(pushT); pushT=setTimeout(()=>{ pushT=null; cloudPush(); },400); }
+async function cloudPush(){
+  if(!fsEsc || pushing) return; pushing=true;
+  try{
+    const ops=[];
+    COLS.forEach(col=>{
+      const ids={}; S[col].forEach(r=>{ ids[r.id]=1; if(!known[col][r.id]){ const {id,...rest}=r; ops.push(["set",fsEsc.collection(col).doc(id),clean(rest)]); known[col][r.id]=1; } });
+      Object.keys(known[col]).forEach(id=>{ if(!ids[id]){ ops.push(["del",fsEsc.collection(col).doc(id)]); delete known[col][id]; } });
+    });
+    if(isProf()){ const c=JSON.stringify(clean(cfgOf())); if(c!==known.config){ ops.push(["set",fsEsc.collection("config").doc("geral"),clean(cfgOf())]); known.config=c; } }
+    saveKnown();
+    for(let i=0;i<ops.length;i+=400){ const b=db.batch(); ops.slice(i,i+400).forEach(o=> o[0]==="set" ? b.set(o[1],o[2]) : b.delete(o[1])); b.commit().catch(e=>{ console.warn(e); setCloud("erro"); }); }
+  }finally{ pushing=false; }
+}
+// primeira conexão: garante que o estoque que já existia no celular vira "saldo inicial" na nuvem
+function seedSaldoInicial(){
+  const atual={...S.estoque}; recomputeEstoque(); const derivado=S.estoque; const ts=Date.now();
+  S.sabores.forEach(s=>{ const a=derivado[s.id]||0, b=atual[s.id]||0; if(a!==b) S.movs.push({id:uid(), ts, sid:s.id, tipo:"ajuste", qtd:b, obs:"saldo inicial ao conectar na nuvem", antes:a, depois:b, dev:S.aparelho.id}); });
+  recomputeEstoque();
+}
+
+/* ----- tela de conexão (Ajustes) ----- */
+function renderNuvemStatus(){
+  const on = !!N;
+  $("nvOff").hidden = on; $("nvOn").hidden = !on;
+  document.body.classList.toggle("aluno", !!N && N.papel==="aluno");
+  const st=$("nvStatus"); if(!st) return;
+  const map={online:["good","Conectado · tudo sincronizando"],conectando:["neutral","Conectando…"],"sem internet":["warn","Sem internet: as vendas ficam guardadas e sobem quando voltar"],erro:["crit","Erro de conexão. Confira a internet ou a configuração."],off:["neutral","Desconectado"]};
+  const [k,t]=map[cloudState]||map.off; st.className="pill "+k; st.textContent=t;
+  $("hdrCloud").hidden=!on; $("hdrCloud").textContent = cloudState==="online" ? "● nuvem" : "○ offline";
+  if(on){ $("nvPapel").textContent = N.papel==="professor" ? "Professor (acesso completo)" : "Aluno (vende e lança perda)"; $("nvEscola").textContent=N.escola; $("nvConvProf").hidden = N.papel!=="professor"; $("nvConvAluno").hidden = N.papel!=="professor"; }
+  $("syncPanel").hidden = on;
+}
+function nvMsg(t,k){ const m=$("nvMsg"); m.textContent=t; m.className="msg "+(k||""); }
+$("nvCriar").addEventListener("click",async()=>{
+  const cfg=parseConfig($("nvCfg").value);
+  if(!cfg){ nvMsg("Não reconheci a configuração. Cole o bloco inteiro que começa com const firebaseConfig = {.","err"); return; }
+  if(!S.aparelho.nome){ S.aparelho.nome="Professor"; }
+  N={cfg, escola:newSchoolCode(), papel:"professor"}; try{ localStorage.setItem(CKEY, JSON.stringify(N)); }catch(e){}
+  known={vendas:{},despesas:{},movs:{},lotes:{},config:null}; saveKnown();
+  seedSaldoInicial(); save();
+  nvMsg("Escola criada na nuvem. Agora envie o convite para os alunos.","ok"); $("nvCfg").value="";
+  renderNuvemStatus(); await cloudStart(); renderAll();
+});
+async function entrarComConvite(txt){
+  const inv=readInvite(txt);
+  if(!inv){ nvMsg("Convite inválido. Copie a mensagem inteira que o professor mandou.","err"); return false; }
+  N=inv; try{ localStorage.setItem(CKEY, JSON.stringify(N)); }catch(e){}
+  known={vendas:{},despesas:{},movs:{},lotes:{},config:null}; saveKnown();
+  // o celular que entra traz só as próprias vendas; estoque e preços vêm da nuvem
+  S.movs = S.movs.filter(m=>false); S.lotes=[];
+  nvMsg(inv.papel==="professor" ? "Conectado como professor." : "Conectado! Suas vendas agora vão direto para o professor.","ok");
+  renderNuvemStatus(); await cloudStart(); renderAll(); return true;
+}
+$("nvEntrar").addEventListener("click",()=>{ if(!S.aparelho.nome && !$("devNome").value.trim()){ nvMsg("Antes, escreva seu nome no campo acima.","err"); $("devNome").focus(); return; } entrarComConvite($("nvConvite").value); });
+function convidar(papel){
+  const code=makeInvite(papel);
+  const link=`https://dogdosliinks-tech.github.io/picole-covafog/#convite=${code}`;
+  const txt = papel==="aluno"
+    ? `🍦 *Picolé COVAFOG* — entrar no caixa da escola\n\n1) Instale ou abra o app\n2) Vá em *Ajustes* → escreva seu nome\n3) Em *Nuvem*, toque em *Entrar com convite* e cole este código:\n\n${code}\n\nPelo navegador é só abrir: ${link}`
+    : `Convite de PROFESSOR do Picolé COVAFOG (acesso completo). Não envie para alunos.\n\n${code}\n\n${link}`;
+  if(window.AndroidApp && AndroidApp.shareText){ try{ AndroidApp.shareText(txt); return; }catch(e){} }
+  if(navigator.share){ navigator.share({text:txt}).catch(()=>{}); return; }
+  if(navigator.clipboard) navigator.clipboard.writeText(txt).then(()=>toast("Convite copiado. Cole no WhatsApp."),()=>{ prompt("Copie o convite:",txt); });
+}
+$("nvConvAluno").addEventListener("click",()=>convidar("aluno"));
+$("nvConvProf").addEventListener("click",()=>convidar("professor"));
+$("nvCopiar").addEventListener("click",()=>{ const code=makeInvite("aluno"); if(navigator.clipboard) navigator.clipboard.writeText(code).then(()=>toast("Código do convite copiado."),()=>{}); });
+$("nvSair").addEventListener("click",e=>{
+  const b=e.currentTarget; if(b.dataset.ok!=="1"){ b.dataset.ok="1"; b.textContent="Toque de novo para desconectar"; setTimeout(()=>{b.dataset.ok="";b.textContent="Desconectar este celular";},4000); return; }
+  unsub.forEach(u=>u()); unsub=[]; fsEsc=null; N=null; try{ localStorage.removeItem(CKEY); localStorage.removeItem(CKEY+".known"); }catch(e){}
+  known={vendas:{},despesas:{},movs:{},lotes:{},config:null}; setCloud("off"); renderAll(); toast("Celular desconectado da nuvem. Os dados continuam neste aparelho.");
+});
+// abrir pelo link do convite (versão navegador)
+(function(){ const m=location.hash.match(/convite=(PICOLE1\.[A-Za-z0-9_\-]+)/); if(m && !N){ history.replaceState(null,"",location.pathname); document.querySelector('[data-v="ajustes"]').click(); $("nvConvite").value=m[1]; nvMsg("Convite recebido. Escreva seu nome acima e toque em Entrar com convite.","ok"); } })();
+// se o aluno tentar abrir aba restrita
+document.querySelectorAll(".tab").forEach(b=>b.addEventListener("click",()=>{ if(N && N.papel==="aluno" && (b.dataset.v==="painel"||b.dataset.v==="custos")) document.querySelector('[data-v="vender"]').click(); }));
+renderNuvemStatus();
+if(N) cloudStart();
+
 
 /* ---------- render ---------- */
 function renderAll(){

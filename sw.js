@@ -1,7 +1,7 @@
 // Picolé COVAFOG — service worker (funciona offline depois do primeiro acesso)
-const VERSAO = "picole-v1";
+const VERSAO = "picole-v2";
 const APP = ["./", "./index.html", "./manifest.json", "./icon-192.png", "./icon-512.png", "./maskable-512.png", "./apple-touch-icon.png"];
-const EXTERNOS = ["fonts.googleapis.com", "fonts.gstatic.com"]; // fontes
+const EXTERNOS = ["fonts.googleapis.com", "fonts.gstatic.com", "www.gstatic.com"]; // fontes
 
 self.addEventListener("install", e => {
   e.waitUntil(caches.open(VERSAO).then(c => c.addAll(APP)).then(() => self.skipWaiting()));
