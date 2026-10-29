@@ -1031,6 +1031,7 @@ const COLS = ["vendas","despesas","movs","lotes"];
 let N = null;            // {cfg, escola, papel}
 let known = {vendas:{},despesas:{},movs:{},lotes:{}, config:null};
 let fb = null, db = null, fsEsc = null, unsub = [], cloudState = "off", pushT = null, pushing = false;
+let cfgLoaded = false;   // só envia a configuração depois de receber a da nuvem (evita apagar sabores ao reinstalar)
 try{ N = JSON.parse(localStorage.getItem(CKEY)||"null"); }catch(e){ N=null; }
 try{ const k = JSON.parse(localStorage.getItem(CKEY+".known")||"null"); if(k) known = Object.assign(known,k); }catch(e){}
 const isProf = () => !N || N.papel === "professor";
@@ -1080,7 +1081,7 @@ async function cloudStart(){
     try{ await db.enablePersistence({synchronizeTabs:true}); }catch(e){}
     if(!firebase.auth().currentUser) await firebase.auth().signInAnonymously();
     fsEsc = db.collection("escolas").doc(N.escola);
-    unsub.forEach(u=>u()); unsub=[];
+    unsub.forEach(u=>u()); unsub=[]; cfgLoaded=false;
     COLS.forEach(col=>{
       unsub.push(fsEsc.collection(col).onSnapshot(snap=>{
         const k={}; const arr=[];
@@ -1093,9 +1094,12 @@ async function cloudStart(){
       }, err=>{ setCloud("erro"); console.warn(err); }));
     });
     unsub.push(fsEsc.collection("config").doc("geral").onSnapshot(d=>{
-      if(d.exists){ const c=d.data(); known.config=JSON.stringify(clean(c)); saveKnown();
-        if(!isProf() || JSON.stringify(clean(cfgOf()))===known.config || !pushT){ Object.assign(S,c); } }
-      afterRemote();
+      if(d.exists){ const c=d.data();
+        // 1ª leitura: a nuvem sempre vence. Depois: só não aplica se o professor tem alteração ainda não enviada.
+        if(!cfgLoaded || !isProf() || !pushT){ Object.assign(S,c); }
+        known.config=JSON.stringify(clean(c)); saveKnown(); }
+      const first=!cfgLoaded; cfgLoaded=true;
+      afterRemote(); if(first && isProf()) cloudSchedule();
     }, err=>{ setCloud("erro"); console.warn(err); }));
     setCloud("online");
     cloudPush();
@@ -1112,12 +1116,14 @@ async function cloudPush(){
   try{
     const ops=[];
     COLS.forEach(col=>{
-      const ids={}; (S[col]=S[col]||[]).forEach(r=>{ ids[r.id]=1; if(!known[col][r.id]){ const {id,...rest}=r; ops.push(["set",fsEsc.collection(col).doc(id),clean(rest)]); known[col][r.id]=1; } });
-      Object.keys(known[col]).forEach(id=>{ if(!ids[id]){ ops.push(["del",fsEsc.collection(col).doc(id)]); delete known[col][id]; } });
+      const ids={}; (S[col]=S[col]||[]).forEach(r=>{ ids[r.id]=1; if(!known[col][r.id]){ const {id,...rest}=r; ops.push(["set",fsEsc.collection(col).doc(id),clean(rest),col,id]); known[col][r.id]=1; } });
+      Object.keys(known[col]).forEach(id=>{ if(!ids[id]){ ops.push(["del",fsEsc.collection(col).doc(id),null,col,id]); delete known[col][id]; } });
     });
-    if(isProf()){ const c=JSON.stringify(clean(cfgOf())); if(c!==known.config){ ops.push(["set",fsEsc.collection("config").doc("geral"),clean(cfgOf())]); known.config=c; } }
+    if(isProf() && cfgLoaded){ const c=JSON.stringify(clean(cfgOf())); if(c!==known.config){ ops.push(["set",fsEsc.collection("config").doc("geral"),clean(cfgOf()),"config",null,known.config]); known.config=c; } }
     saveKnown();
-    for(let i=0;i<ops.length;i+=400){ const b=db.batch(); ops.slice(i,i+400).forEach(o=> o[0]==="set" ? b.set(o[1],o[2]) : b.delete(o[1])); b.commit().then(()=>{ if(cloudState!=="online") setCloud("online"); }).catch(e=>{ console.warn(e); setCloud("erro"); }); }
+    for(let i=0;i<ops.length;i+=400){ const b=db.batch(); ops.slice(i,i+400).forEach(o=> o[0]==="set" ? b.set(o[1],o[2]) : b.delete(o[1])); const lote=ops.slice(i,i+400); b.commit().then(()=>{ if(cloudState!=="online") setCloud("online"); }).catch(e=>{ console.warn(e); setCloud("erro");
+      // não subiu: desmarca para tentar de novo na próxima mudança
+      lote.forEach(o=>{ if(o[3]==="config") known.config=o[5]??null; else if(o[0]==="set") delete known[o[3]][o[4]]; else known[o[3]][o[4]]=1; }); saveKnown(); }); }
   }catch(e){ console.warn(e); setCloud("erro"); }finally{ pushing=false; }
 }
 // primeira conexão: garante que o estoque que já existia no celular vira "saldo inicial" na nuvem
