@@ -574,12 +574,12 @@ function load(){ try{ S = JSON.parse(localStorage.getItem(KEY)||"null"); }catch(
   if(!S.revenda){ S.revenda=true; S.embalagem=0; S.sabores.forEach(x=>{ if(x.custo===undefined) x.custo=0; delete x.receita; delete x.rend; }); } }
 function save(){ try{ localStorage.setItem(KEY, JSON.stringify(S)); if(typeof cloudSchedule==="function") cloudSchedule(); return true; }catch(e){ toast("Este navegador não está salvando (modo anônimo?)"); return false; } }
 // v1.8: Bananinha (R$8), Pitchulinha (R$3) e combo dos dois por R$10 (adiciona uma vez só; se apagar, não volta)
-function addNovos18(){ if(S.novos18) return false; S.novos18=true;
+function addNovos18(){ let mud=false; const rem=Array.isArray(S.removidos)?S.removidos:[]; if(!Array.isArray(S.sabores)) S.sabores=[];
   [{id:"bananinha", nome:"Bananinha", cor:"#E8C33A", min:0, custo:0, especial:8},
-   {id:"pitchulinha", nome:"Pitchulinha", cor:"#2F8FD8", min:0, custo:0, especial:3}].forEach(n=>{ if(!S.sabores.some(x=>x.id===n.id)) S.sabores.push(n); });
+   {id:"pitchulinha", nome:"Pitchulinha", cor:"#2F8FD8", min:0, custo:0, especial:3}].forEach(n=>{ if(!rem.includes(n.id) && !S.sabores.some(x=>x.id===n.id)){ S.sabores.push(n); mud=true; } });
   if(!Array.isArray(S.combos)) S.combos=[];
-  if(!S.combos.some(c=>c.a==="bananinha"&&c.b==="pitchulinha")) S.combos.push({a:"bananinha", b:"pitchulinha", p:10});
-  return true; }
+  if(!rem.includes("combo-bp") && !S.combos.some(c=>c.a==="bananinha"&&c.b==="pitchulinha")){ S.combos.push({a:"bananinha", b:"pitchulinha", p:10}); mud=true; }
+  return mud; }
 load(); if(addNovos18()) localStorage.setItem(KEY, JSON.stringify(S));
 
 const sab = id => S.sabores.find(s=>s.id===id);
@@ -937,7 +937,7 @@ $("saborTable").addEventListener("input",e=>{ const i=e.target.dataset.sab; if(i
   if(f==="min") v=Math.max(0,Math.round(num(v))); if(f==="especial") v=num(v)>0?num(v):0; if(f==="custo") v=Math.max(0,num(v)); S.sabores[i][f]=v; save(); renderFlavors(); renderCart(); });
 $("saborTable").addEventListener("click",e=>{ const b=e.target.closest("[data-delsab]"); if(!b) return;
   if(b.dataset.ok!=="1"){ b.dataset.ok="1"; b.textContent="confirmar?"; setTimeout(()=>{b.dataset.ok="";b.textContent="remover";},3000); return; }
-  const s=S.sabores[Number(b.dataset.delsab)]; S.sabores.splice(Number(b.dataset.delsab),1); delete cart[s.id]; save(); renderAll(); });
+  const s=S.sabores[Number(b.dataset.delsab)]; S.sabores.splice(Number(b.dataset.delsab),1); if(s && (s.id==="bananinha"||s.id==="pitchulinha")){ S.removidos=[...(S.removidos||[]), s.id]; } delete cart[s.id]; save(); renderAll(); });
 $("addSabor").addEventListener("click",()=>{ const cores=["#E0457B","#F2A31D","#2E9CCA","#3FA34D","#7B3FB5","#D64533","#1F9E8F"]; S.sabores.push({id:uid(), nome:"Novo sabor", cor:cores[S.sabores.length%cores.length], min:10, custo:0}); save(); renderAll(); const ins=$("saborTable").querySelectorAll('input[data-f="nome"]'); const last=ins[ins.length-1]; last?.focus(); last?.select(); });
 function dl(name, text, type){ if(window.AndroidApp && AndroidApp.saveFile){ try{ AndroidApp.saveFile(name, type, text); toast("Arquivo salvo em Downloads: "+name); }catch(e){ toast("Não foi possível salvar o arquivo."); } return; } const a=document.createElement("a"); a.href=URL.createObjectURL(new Blob([text],{type})); a.download=name; document.body.appendChild(a); a.click(); setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},500); }
 $("btnExport").addEventListener("click",()=>{ dl(`picole-covafog-backup-${today()}.json`, JSON.stringify(S), "application/json"); $("bkMsg").textContent="Backup baixado."; $("bkMsg").className="msg ok"; });
@@ -1070,7 +1070,7 @@ function readInvite(txt){
 }
 function newSchoolCode(){ const a=new Uint8Array(12); (crypto||window.msCrypto).getRandomValues(a); return "cvf-"+[...a].map(x=>x.toString(36).padStart(2,"0")).join("").slice(0,18); }
 
-const cfgOf = () => ({sabores:S.sabores, tiers:S.tiers, promoOn:S.promoOn, embalagem:S.embalagem, combos:S.combos||[], novos18:!!S.novos18});
+const cfgOf = () => ({sabores:S.sabores, tiers:S.tiers, promoOn:S.promoOn, embalagem:S.embalagem, combos:S.combos||[], removidos:S.removidos||[]});
 const clean = o => JSON.parse(JSON.stringify(o));            // tira undefined (o Firestore não aceita)
 
 // estoque na nuvem = soma das movimentações (entrada/compra/perda/contagem) menos as vendas
@@ -1107,7 +1107,7 @@ async function cloudStart(){
       if(d.exists){ const c=d.data();
         // 1ª leitura: a nuvem sempre vence. Depois: só não aplica se o professor tem alteração ainda não enviada.
         if(!cfgLoaded || !isProf() || !pushT){ Object.assign(S,c); }
-        if(isProf() && addNovos18()) localStorage.setItem(KEY, JSON.stringify(S));
+        if(addNovos18()){ localStorage.setItem(KEY, JSON.stringify(S)); if(cfgLoaded && isProf()) cloudSchedule(); }
         known.config=JSON.stringify(clean(c)); saveKnown(); }
       const first=!cfgLoaded; cfgLoaded=true;
       afterRemote(); if(first && isProf()) cloudSchedule();
@@ -1222,7 +1222,8 @@ setInterval(renderCaixa, 60000);
 })();
 </script>
 <script>
-if ("serviceWorker" in navigator && location.protocol.startsWith("http")) window.addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {}));
+if ("serviceWorker" in navigator && location.protocol.startsWith("http")) window.addEventListener("load", () => navigator.serviceWorker.register("sw.js", {updateViaCache: "none"}).then(r => r.update()).catch(() => {}));
+if ("serviceWorker" in navigator) { let recarregou=false; navigator.serviceWorker.addEventListener("controllerchange", () => { if(recarregou || !navigator.serviceWorker.controller) return; recarregou=true; location.reload(); }); }
 </script>
 </body>
 </html>
