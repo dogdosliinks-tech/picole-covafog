@@ -573,7 +573,14 @@ function load(){ try{ S = JSON.parse(localStorage.getItem(KEY)||"null"); }catch(
   ["vendas","despesas","movs","lotes"].forEach(k=>{ if(!Array.isArray(S[k])) S[k]=[]; });
   if(!S.revenda){ S.revenda=true; S.embalagem=0; S.sabores.forEach(x=>{ if(x.custo===undefined) x.custo=0; delete x.receita; delete x.rend; }); } }
 function save(){ try{ localStorage.setItem(KEY, JSON.stringify(S)); if(typeof cloudSchedule==="function") cloudSchedule(); return true; }catch(e){ toast("Este navegador não está salvando (modo anônimo?)"); return false; } }
-load();
+// v1.8: Bananinha (R$8), Pitchulinha (R$3) e combo dos dois por R$10 (adiciona uma vez só; se apagar, não volta)
+function addNovos18(){ if(S.novos18) return false; S.novos18=true;
+  [{id:"bananinha", nome:"Bananinha", cor:"#E8C33A", min:0, custo:0, especial:8},
+   {id:"pitchulinha", nome:"Pitchulinha", cor:"#2F8FD8", min:0, custo:0, especial:3}].forEach(n=>{ if(!S.sabores.some(x=>x.id===n.id)) S.sabores.push(n); });
+  if(!Array.isArray(S.combos)) S.combos=[];
+  if(!S.combos.some(c=>c.a==="bananinha"&&c.b==="pitchulinha")) S.combos.push({a:"bananinha", b:"pitchulinha", p:10});
+  return true; }
+load(); if(addNovos18()) localStorage.setItem(KEY, JSON.stringify(S));
 
 const sab = id => S.sabores.find(s=>s.id===id);
 const stock = id => S.estoque[id]||0;
@@ -594,13 +601,16 @@ function precoPromo(n){
   return {total:Math.round(dp[n]*100)/100, combo};
 }
 function precoCarrinho(itens){
-  let nPromo=0, esp=0, espQ=0;
+  let nPromo=0, esp=0, espQ=0, cbT=0, cbTxt=[]; itens={...itens};
+  (S.combos||[]).forEach(cb=>{ if(!(cb.p>0)||!sab(cb.a)||!sab(cb.b)) return; const k=Math.min(itens[cb.a]||0, itens[cb.b]||0); if(k>0){ itens[cb.a]-=k; itens[cb.b]-=k; cbT+=k*cb.p; cbTxt.push(`${k}× combo ${sab(cb.a).nome}+${sab(cb.b).nome} (${brl(cb.p)})`); } });
+  esp+=cbT;
   for(const [sid,q] of Object.entries(itens)){ const s=sab(sid); if(s && s.especial>0){ esp+=q*s.especial; espQ+=q; } else nPromo+=q; }
   const pr = precoPromo(nPromo);
-  return {total:Math.round((pr.total+esp)*100)/100, combo:pr.combo, espQ, esp, nPromo};
+  return {total:Math.round((pr.total+esp)*100)/100, combo:pr.combo, espQ, esp, nPromo, cbTxt};
 }
 function comboTxt(c){
   const parts = c.combo.map(x => x.q===1 ? `${x.vezes} avulso${x.vezes>1?"s":""} (${brl(x.p)})` : `${x.vezes}× "${x.q} por ${brl(x.p).replace("R$ ","R$")}"`);
+  if(c.cbTxt) parts.push(...c.cbTxt);
   if(c.espQ) parts.push(`${c.espQ} preço especial`);
   return parts.join(" + ");
 }
@@ -1060,7 +1070,7 @@ function readInvite(txt){
 }
 function newSchoolCode(){ const a=new Uint8Array(12); (crypto||window.msCrypto).getRandomValues(a); return "cvf-"+[...a].map(x=>x.toString(36).padStart(2,"0")).join("").slice(0,18); }
 
-const cfgOf = () => ({sabores:S.sabores, tiers:S.tiers, promoOn:S.promoOn, embalagem:S.embalagem});
+const cfgOf = () => ({sabores:S.sabores, tiers:S.tiers, promoOn:S.promoOn, embalagem:S.embalagem, combos:S.combos||[], novos18:!!S.novos18});
 const clean = o => JSON.parse(JSON.stringify(o));            // tira undefined (o Firestore não aceita)
 
 // estoque na nuvem = soma das movimentações (entrada/compra/perda/contagem) menos as vendas
@@ -1097,6 +1107,7 @@ async function cloudStart(){
       if(d.exists){ const c=d.data();
         // 1ª leitura: a nuvem sempre vence. Depois: só não aplica se o professor tem alteração ainda não enviada.
         if(!cfgLoaded || !isProf() || !pushT){ Object.assign(S,c); }
+        if(isProf() && addNovos18()) localStorage.setItem(KEY, JSON.stringify(S));
         known.config=JSON.stringify(clean(c)); saveKnown(); }
       const first=!cfgLoaded; cfgLoaded=true;
       afterRemote(); if(first && isProf()) cloudSchedule();

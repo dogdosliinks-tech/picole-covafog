@@ -1,5 +1,5 @@
 // Picolé COVAFOG — service worker (funciona offline depois do primeiro acesso)
-const VERSAO = "picole-v4";
+const VERSAO = "picole-v5";
 const APP = ["./", "./index.html", "./manifest.json", "./icon-192.png", "./icon-512.png", "./maskable-512.png", "./apple-touch-icon.png"];
 const EXTERNOS = ["fonts.googleapis.com", "fonts.gstatic.com", "www.gstatic.com"]; // fontes
 
